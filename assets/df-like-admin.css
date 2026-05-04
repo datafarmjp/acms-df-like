@@ -1,0 +1,448 @@
+.df-like-admin__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+  flex-wrap: wrap;
+}
+
+.df-like-admin-settings {
+  margin: 0 0 24px;
+}
+
+.df-like-admin-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 18px;
+  padding: 12px 0 14px;
+  border-bottom: 1px solid #d8dee4;
+  background: #fff;
+}
+
+.df-like-admin-sticky-header .acms-admin-admin-title {
+  margin: 0 0 6px;
+}
+
+.df-like-admin-intro {
+  margin: 0;
+}
+
+.df-like-admin-settings__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+
+.df-like-admin-settings__header .acms-admin-admin-title2 {
+  margin: 0;
+}
+
+.df-like-admin-settings__save {
+  flex: 0 0 auto;
+  min-width: 110px;
+  font-weight: bold;
+}
+
+.df-like-admin-subtitle {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.df-like-admin-section-title {
+  margin-top: 0;
+}
+
+.df-like-admin-display-table {
+  margin-bottom: 16px;
+}
+
+.df-like-admin-range,
+.df-like-admin-copy-block,
+.df-like-admin-form-select,
+.df-like-admin-import__form,
+.df-like-admin-manual__code {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.df-like-admin-range input[type="range"] {
+  width: 180px;
+}
+
+.df-like-admin-import,
+.df-like-admin-manual,
+.df-like-admin-notify,
+.df-like-admin-preview,
+.df-like-admin-scope {
+  margin: 0 0 24px;
+  padding: 12px;
+  border: 1px solid #d8dee4;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.df-like-admin-notify .adminTable {
+  margin: 0;
+  border: 0;
+}
+
+.df-like-admin-notify .adminTable th,
+.df-like-admin-notify .adminTable td {
+  border: 0;
+}
+
+.df-like-admin-notify .df-like-admin-form-select {
+  margin-bottom: 8px;
+}
+
+.df-like-admin-scope__note {
+  margin: 10px 0 0;
+}
+
+.df-like-admin-scope__rebuild {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.df-like-admin-scope__rebuild p {
+  margin: 0;
+}
+
+.df-like-admin-local-status {
+  margin: 8px 0 12px;
+}
+
+.df-like-admin-import__form {
+  margin: 0 0 12px;
+}
+
+.df-like-admin-preview {
+  margin-bottom: 32px;
+}
+
+.df-like-admin-preview__buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.df-like-admin-preview-button {
+  --df-like-preview-main-color: #cf3251;
+  --df-like-preview-border-radius: 18px;
+  --df-like-preview-liked-bg: #fff2f5;
+  --df-like-preview-liked-bg: color-mix(in srgb, var(--df-like-preview-main-color) 10%, #fff);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid #d8dee4;
+  border-radius: var(--df-like-preview-border-radius);
+  background: #fff;
+  color: #24292f;
+  font: inherit;
+  line-height: 1.2;
+  cursor: default;
+  transition: border-color .15s ease, background-color .15s ease, color .15s ease;
+}
+
+.df-like-admin-preview-button.is-liked {
+  border-color: var(--df-like-preview-main-color);
+  background: var(--df-like-preview-liked-bg);
+  color: var(--df-like-preview-main-color);
+}
+
+.df-like-admin-preview-button__icon {
+  font-size: 15px;
+}
+
+.df-like-admin-preview-button__count {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.df-like-admin-import__result {
+  padding: 10px;
+  border: 1px solid #d8dee4;
+  border-radius: 4px;
+  background: #f6f8fa;
+}
+
+.df-like-admin-import__result ul {
+  margin: 8px 0 0;
+  padding-left: 1.5em;
+}
+
+.df-like-admin-local-status {
+  min-height: 1.4em;
+  margin: 8px 0 0;
+}
+
+.df-like-admin-pager {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 0;
+}
+
+.df-like-admin-copy-block {
+  margin: 8px 0 0;
+}
+
+.df-like-admin-copy-block code,
+.df-like-admin-manual__code code {
+  display: inline-block;
+  padding: 7px 10px;
+  border: 1px solid #d8dee4;
+  border-radius: 4px;
+  background: #f6f8fa;
+  color: #24292f;
+  overflow-wrap: anywhere;
+}
+
+.df-like-admin-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 12px;
+  border: 1px solid #d8dee4;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.df-like-admin-keyword {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 4px 0 22px;
+}
+
+.df-like-admin-keyword label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.df-like-admin-keyword label span {
+  min-width: 10em;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.df-like-admin-keyword input[type="search"] {
+  width: 320px;
+  max-width: 100%;
+}
+
+.df-like-admin-keyword button {
+  align-self: center;
+}
+
+.df-like-admin-filter .js-df-like-preset.is-active {
+  border-color: #2563eb;
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.df-like-admin-filter__presets,
+.df-like-admin-filter__dates {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.df-like-admin-filter__dates label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.df-like-admin-filter__dates label span {
+  display: inline-block;
+  min-width: 4.5em;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.df-like-admin__summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 0 0 24px;
+}
+
+.df-like-admin-card {
+  border: 1px solid #d8dee4;
+  border-radius: 6px;
+  padding: 14px;
+  background: #fff;
+}
+
+.df-like-admin-card span {
+  display: block;
+  margin-bottom: 6px;
+  color: #57606a;
+}
+
+.df-like-admin-card strong {
+  font-size: 26px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.df-like-admin__chart {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0 0 16px;
+  padding: 12px;
+  border: 1px solid #d8dee4;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.df-like-admin-line-chart {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 220px;
+  margin: 0 0 14px;
+  overflow: hidden;
+}
+
+.df-like-admin-line-chart svg {
+  display: block;
+  width: 100%;
+  height: 220px;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.df-like-admin-line-chart__grid {
+  stroke: #e5e7eb;
+  stroke-width: 1;
+}
+
+.df-like-admin-line-chart__line {
+  fill: none;
+  stroke: #2563eb;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.df-like-admin-line-chart__point {
+  fill: #fff;
+  stroke: #2563eb;
+  stroke-width: 3;
+}
+
+.df-like-admin-line-chart__axis,
+.df-like-admin-line-chart__caption {
+  fill: #57606a;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.df-like-admin-daily-bars {
+  margin: 6px 0 0;
+}
+
+.df-like-admin-bar {
+  display: grid;
+  grid-template-columns: 92px 1fr 42px;
+  gap: 10px;
+  align-items: center;
+  min-height: 24px;
+  font-variant-numeric: tabular-nums;
+}
+
+.df-like-admin-bar div {
+  height: 8px;
+  background: #dbeafe;
+}
+
+.df-like-admin-bar i {
+  display: block;
+  height: 8px;
+  background: #2563eb;
+}
+
+.df-like-admin__referer {
+  max-width: 360px;
+  overflow-wrap: anywhere;
+}
+
+.df-like-admin__actions {
+  white-space: nowrap;
+}
+
+.df-like-admin-errors {
+  margin: 0 0 24px;
+}
+
+.df-like-admin-errors__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 8px;
+}
+
+.df-like-admin-errors__header .acms-admin-admin-title2 {
+  margin: 0;
+}
+
+.df-like-admin__error-message {
+  max-width: 520px;
+  overflow-wrap: anywhere;
+}
+
+.df-like-admin-error-detail summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #eef2f7;
+  color: #24292f;
+  cursor: pointer;
+  font-weight: bold;
+  list-style: none;
+}
+
+.df-like-admin-error-detail summary::-webkit-details-marker {
+  display: none;
+}
+
+.df-like-admin-error-detail pre {
+  max-width: 520px;
+  max-height: 240px;
+  overflow: auto;
+  margin: 8px 0 0;
+  padding: 8px;
+  border: 1px solid #d8dee4;
+  border-radius: 4px;
+  background: #f6f8fa;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

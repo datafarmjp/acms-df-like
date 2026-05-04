@@ -1,0 +1,220 @@
+.df-like-button {
+  --df-like-main-color: #cf3251;
+  --df-like-border-radius: 18px;
+  --df-like-hover-border: var(--df-like-main-color);
+  --df-like-hover-color: var(--df-like-main-color);
+  --df-like-liked-border: var(--df-like-main-color);
+  --df-like-liked-bg: #fff2f5;
+  --df-like-liked-bg: color-mix(in srgb, var(--df-like-main-color) 10%, #fff);
+  --df-like-liked-color: var(--df-like-main-color);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid #d8dee4;
+  border-radius: var(--df-like-border-radius);
+  background: #fff;
+  color: #24292f;
+  font: inherit;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: border-color .15s ease, background-color .15s ease, color .15s ease;
+}
+
+.df-like-button:hover,
+.df-like-button:focus {
+  border-color: var(--df-like-hover-border);
+  color: var(--df-like-hover-color);
+}
+
+.df-like-button.is-liked {
+  border-color: var(--df-like-liked-border);
+  background: var(--df-like-liked-bg);
+  color: var(--df-like-liked-color);
+}
+
+.df-like-button:disabled {
+  cursor: wait;
+  opacity: .72;
+}
+
+.df-like-button.is-loading {
+  pointer-events: none;
+}
+
+.df-like-button__icon {
+  font-size: 15px;
+}
+
+.df-like-button__count {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.df-like-button--count-hidden .df-like-button__count,
+.df-like-button--count-zero .df-like-button__count {
+  display: none;
+}
+
+.df-like-auto-insert,
+.df-like-manual-insert {
+  display: flex;
+  margin: 24px 0;
+}
+
+.df-like-auto-insert--left {
+  justify-content: flex-start;
+}
+
+.df-like-auto-insert--center {
+  justify-content: center;
+}
+
+.df-like-auto-insert--right {
+  justify-content: flex-end;
+}
+
+.df-like-analytics {
+  margin: 2em 0;
+  color: inherit;
+  font: inherit;
+}
+
+.df-like-analytics__title {
+  margin: 0 0 1em;
+  font-size: 1.6em;
+  line-height: 1.35;
+}
+
+.df-like-analytics__section {
+  margin: 1.5em 0;
+  padding: 1.25em;
+  border: 1px solid #d8dee4;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.df-like-analytics__heading {
+  margin: 0 0 .9em;
+  font-size: 1.15em;
+  line-height: 1.4;
+}
+
+.df-like-analytics__summary-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.df-like-analytics__summary-item {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.df-like-analytics__summary-item dt {
+  margin: 0 0 4px;
+  color: #57606a;
+  font-size: .9em;
+}
+
+.df-like-analytics__summary-item dd {
+  margin: 0;
+  font-size: 1.8em;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.df-like-analytics__daily {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.df-like-analytics__daily-row {
+  display: grid;
+  grid-template-columns: minmax(7em, auto) 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.df-like-analytics__daily-date {
+  font-variant-numeric: tabular-nums;
+}
+
+.df-like-analytics__daily-bar {
+  min-width: 80px;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #dbeafe;
+}
+
+.df-like-analytics__daily-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #2563eb;
+}
+
+.df-like-analytics__daily-count {
+  min-width: 2em;
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.df-like-analytics__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .95em;
+}
+
+.df-like-analytics__table th,
+.df-like-analytics__table td {
+  padding: .65em .75em;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  vertical-align: top;
+}
+
+.df-like-analytics__table th {
+  color: #57606a;
+  font-weight: 700;
+  background: #f8fafc;
+}
+
+.df-like-analytics__table a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.df-like-analytics__empty {
+  margin: 0;
+  color: #57606a;
+}
+
+@media (max-width: 640px) {
+  .df-like-analytics__section {
+    padding: 1em;
+  }
+
+  .df-like-analytics__daily-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .df-like-analytics__daily-bar {
+    grid-column: 1 / -1;
+  }
+
+  .df-like-analytics__table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}

@@ -1,0 +1,303 @@
+<!-- DF_Like managed admin app template -->
+<header>
+  <div>
+    @include("/admin/topicpath.html")
+  </div>
+</header>
+
+<link rel="stylesheet" href="/extension/plugins/DF_Like/assets/df-like-admin.css?v=0.7.25">
+
+<section class="df-like-admin js-df-like-admin">
+  <div class="df-like-admin-sticky-header">
+    <div>
+      <h1 class="acms-admin-admin-title"><!--T-->DFいいね解析<!--/T--></h1>
+      <p class="df-like-admin-intro acms-admin-text-muted"><!--T-->「DFいいね」拡張アプリが有効なブログの記事にいいね機能を追加します。<!--/T--></p>
+    </div>
+    <input type="submit" name="ACMS_POST_Config" value="<!--T-->設定を保存<!--/T-->" form="df-like-admin-settings-form" class="acms-admin-btn-admin acms-admin-btn-admin-primary js-saving-splash df-like-admin-settings__save">
+  </div>
+
+  <!-- BEGIN_MODULE Admin_Config -->
+  <!-- BEGIN_IF [{notice_mess}/nem/] -->
+  <div role="alert" class="acms-admin-alert acms-admin-alert-info acms-admin-alert-icon">
+    <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+    <button type="button" class="js-acms-alert-close acms-admin-alert-icon-after">×</button>
+    <!--T-->いいね設定を保存しました<!--/T-->
+  </div>
+  <!-- END_IF -->
+
+  <form action="" method="post" id="df-like-admin-settings-form" class="acms-admin-form df-like-admin-settings js-df-like-settings">
+    <div class="df-like-admin-settings__header">
+      <h2 class="acms-admin-admin-title2"><!--T-->表示設定<!--/T--></h2>
+      @include("/admin/config/action.html")
+    </div>
+
+    <div class="acms-admin-alert acms-admin-alert-warning js-df-like-hook-warning" hidden style="display: none !important;">
+      <!--T-->記事詳細への自動表示には、環境設定の <code>HOOK_ENABLE</code> を <code>1</code> にする必要があります。現在この拡張アプリは設定だけ保存し、HOOKが有効な環境で自動挿入を実行します。<!--/T-->
+    </div>
+
+    <table class="adminTable acms-admin-table-admin-edit df-like-admin-display-table">
+      <tr>
+        <th><!--T-->記事詳細へ自動表示<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->対象エントリーの所属ブログでDF_Likeが有効な時、Entry_Body本文前後に自動で追加します。利用には HOOK_ENABLE=1 が必要です。<!--/T-->"></i></th>
+        <td>
+          <input type="hidden" name="df_like_auto_insert" value="{df_like_auto_insert}" class="js-df-like-auto-insert-value">
+          <label class="acms-admin-form-checkbox">
+            <input type="checkbox" value="enabled" class="js-df-like-auto-insert-toggle" data-config-value="{df_like_auto_insert}">
+            <i class="acms-admin-ico-checkbox"></i>
+            <!--T-->Entry_Bodyにいいねボタンを自動表示する<!--/T-->
+          </label>
+          <p class="acms-admin-text-muted"><!--T-->手動設置タグと併用できます。近い場所に並ぶ場合は、本文上/本文下の表示を非表示にして調整してください。<!--/T--></p>
+          <input type="hidden" name="config[]" value="df_like_auto_insert">
+        </td>
+      </tr>
+      <tr>
+        <th><!--T-->本文上の表示<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->自動表示を有効にした時、本文上に出すボタンの配置を選びます。<!--/T-->"></i></th>
+        <td>
+          <select name="df_like_auto_insert_top" class="acms-admin-form-width-small js-df-like-placement" data-config-value="{df_like_auto_insert_top}" data-default="none" data-position="top" data-legacy-position="{df_like_auto_insert_position}">
+            <option value="none"{df_like_auto_insert_top:selected#none}><!--T-->非表示<!--/T--></option>
+            <option value="left"{df_like_auto_insert_top:selected#left}><!--T-->左<!--/T--></option>
+            <option value="center"{df_like_auto_insert_top:selected#center}><!--T-->中央<!--/T--></option>
+            <option value="right"{df_like_auto_insert_top:selected#right}><!--T-->右<!--/T--></option>
+          </select>
+          <input type="hidden" name="config[]" value="df_like_auto_insert_top">
+        </td>
+      </tr>
+      <tr>
+        <th><!--T-->本文下の表示<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->自動表示を有効にした時、本文下に出すボタンの配置を選びます。<!--/T-->"></i></th>
+        <td>
+          <select name="df_like_auto_insert_bottom" class="acms-admin-form-width-small js-df-like-placement" data-config-value="{df_like_auto_insert_bottom}" data-default="left" data-position="bottom" data-legacy-position="{df_like_auto_insert_position}">
+            <option value="none"{df_like_auto_insert_bottom:selected#none}><!--T-->非表示<!--/T--></option>
+            <option value="left"{df_like_auto_insert_bottom:selected#left}><!--T-->左<!--/T--></option>
+            <option value="center"{df_like_auto_insert_bottom:selected#center}><!--T-->中央<!--/T--></option>
+            <option value="right"{df_like_auto_insert_bottom:selected#right}><!--T-->右<!--/T--></option>
+          </select>
+          <input type="hidden" name="config[]" value="df_like_auto_insert_bottom">
+        </td>
+      </tr>
+      <tr>
+        <th><!--T-->マーク<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ボタン内に表示する記号を選びます。不要な場合は「なし」を選べます。<!--/T-->"></i></th>
+        <td>
+          <select name="df_like_icon" class="acms-admin-form-width-small js-df-like-icon" data-config-value="{df_like_icon}" data-default="heart">
+            <option value="heart"{df_like_icon:selected#heart}>♥ <!--T-->ハート<!--/T--></option>
+            <option value="star"{df_like_icon:selected#star}>★ <!--T-->星<!--/T--></option>
+            <option value="clap"{df_like_icon:selected#clap}>👏 <!--T-->拍手<!--/T--></option>
+            <option value="good"{df_like_icon:selected#good}>👍 <!--T-->グッド<!--/T--></option>
+            <option value="none"{df_like_icon:selected#none}><!--T-->なし<!--/T--></option>
+          </select>
+          <input type="hidden" name="config[]" value="df_like_icon">
+        </td>
+      </tr>
+      <tr>
+        <th><!--T-->いいね数<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ボタン内の件数表示を切り替えます。表示設定でも0件時は数字を出しません。<!--/T-->"></i></th>
+        <td>
+          <select name="df_like_count_display" class="acms-admin-form-width-small">
+            <option value="show"{df_like_count_display:selected#show}><!--T-->表示<!--/T--></option>
+            <option value="hide"{df_like_count_display:selected#hide}><!--T-->非表示<!--/T--></option>
+          </select>
+          <input type="hidden" name="config[]" value="df_like_count_display">
+        </td>
+      </tr>
+      <tr>
+        <th><!--T-->ボタン色<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->未いいね、ホバー、いいね済み表示の主色として使います。<!--/T-->"></i></th>
+        <td>
+          <input type="color" name="df_like_color" value="#cf3251" data-config-value="{df_like_color}" data-default="#cf3251" class="js-df-like-color">
+          <input type="hidden" name="config[]" value="df_like_color">
+        </td>
+      </tr>
+      <tr>
+        <th><!--T-->角丸<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->ボタンの丸みを0〜32pxで調整します。<!--/T-->"></i></th>
+        <td>
+          <div class="df-like-admin-range">
+            <input type="range" min="0" max="32" value="18" data-config-value="{df_like_border_radius}" data-default="18" class="js-df-like-radius-range">
+            <input type="number" name="df_like_border_radius" min="0" max="32" value="18" data-config-value="{df_like_border_radius}" data-default="18" class="acms-admin-form-width-mini js-df-like-radius-number">
+            <span>px</span>
+          </div>
+          <input type="hidden" name="config[]" value="df_like_border_radius">
+        </td>
+      </tr>
+      <tr>
+        <th><!--T-->いいね前の文言<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->まだいいねしていない状態で表示するラベルです。<!--/T-->"></i></th>
+        <td>
+          <input type="text" name="df_like_label_like" value="{df_like_label_like}" placeholder="いいね" class="acms-admin-form-width-medium">
+          <input type="hidden" name="config[]" value="df_like_label_like">
+        </td>
+      </tr>
+      <tr>
+        <th><!--T-->いいね済みの文言<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->いいね済みの状態で表示するラベルです。<!--/T-->"></i></th>
+        <td>
+          <input type="text" name="df_like_label_liked" value="{df_like_label_liked}" placeholder="いいね済み" class="acms-admin-form-width-medium">
+          <input type="hidden" name="config[]" value="df_like_label_liked">
+        </td>
+      </tr>
+      <tr>
+        <th><!--T-->絵文字について<!--/T--></th>
+        <td>
+          <p class="acms-admin-text-muted"><!--T-->絵文字が <code>?</code> になる場合は、a-blog cms のConfigテーブルが <code>utf8mb4</code> か確認してください。<!--/T--></p>
+        </td>
+      </tr>
+    </table>
+
+    <section class="df-like-admin-preview js-df-like-preview" aria-label="<!--T-->いいねボタンのプレビュー<!--/T-->">
+      <h3 class="df-like-admin-subtitle"><!--T-->プレビュー<!--/T--></h3>
+      <p class="acms-admin-text-muted"><!--T-->保存前の表示設定をサンプルのいいねボタンで確認できます。<!--/T--></p>
+      <div class="df-like-admin-preview__buttons">
+        <button type="button" class="df-like-admin-preview-button js-df-like-preview-like" style="--df-like-preview-main-color: #cf3251; --df-like-preview-border-radius: 18px;" aria-pressed="false">
+          <span class="df-like-admin-preview-button__icon js-df-like-preview-like-icon" aria-hidden="true"></span>
+          <span class="df-like-admin-preview-button__label js-df-like-preview-like-label"></span>
+          <span class="df-like-admin-preview-button__count js-df-like-preview-like-count">12</span>
+        </button>
+        <button type="button" class="df-like-admin-preview-button is-liked js-df-like-preview-liked" style="--df-like-preview-main-color: #cf3251; --df-like-preview-border-radius: 18px;" aria-pressed="true">
+          <span class="df-like-admin-preview-button__icon js-df-like-preview-liked-icon" aria-hidden="true"></span>
+          <span class="df-like-admin-preview-button__label js-df-like-preview-liked-label"></span>
+          <span class="df-like-admin-preview-button__count js-df-like-preview-liked-count">12</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="df-like-admin-manual">
+      <h2 class="acms-admin-admin-title2"><!--T-->手動設置<!--/T--></h2>
+      <p class="acms-admin-text-muted"><!--T-->Entry_Body の entry:loop 内にこのタグを入れると、その行のエントリーIDを基準にいいねボタンを表示できます。自動表示ONでも手動設置したボタンは表示されます。<!--/T--></p>
+      <div class="df-like-admin-manual__code">
+        <code class="js-df-like-manual-tag">&lt;!-- BEGIN_MODULE DFLike ctx=&quot;eid/&#123;eid&#125;&quot; --&gt;&lt;!-- END_MODULE DFLike --&gt;</code>
+        <button type="button" class="acms-admin-btn-admin js-df-like-copy-tag"><!--T-->コピー<!--/T--></button>
+      </div>
+      <p class="df-like-admin-local-status js-df-like-manual-copy-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="df-like-admin-notify">
+      <h2 class="acms-admin-admin-title2"><!--T-->いいね通知<!--/T--></h2>
+      <table class="adminTable acms-admin-table-admin-edit">
+        <tr>
+          <th><!--T-->通知<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->いいね追加時だけ、指定フォームの管理者宛メール設定を使って通知します。<!--/T-->"></i></th>
+          <td>
+            <input type="hidden" name="df_like_notify_enabled" value="{df_like_notify_enabled}" class="js-df-like-notify-value">
+            <label class="acms-admin-form-checkbox">
+              <input type="checkbox" value="enabled" class="js-df-like-notify-toggle" data-config-value="{df_like_notify_enabled}">
+              <i class="acms-admin-ico-checkbox"></i>
+              <!--T-->いいねされた時に指定フォームの管理者宛メール設定で通知する<!--/T-->
+            </label>
+            <p class="acms-admin-text-muted"><!--T-->通知対象はいいね追加時のみです。フォームログや連番は増やさず、管理者宛メール設定だけを利用します。<!--/T--></p>
+            <input type="hidden" name="config[]" value="df_like_notify_enabled">
+          </td>
+        </tr>
+        <tr class="js-df-like-notify-form-row" hidden>
+          <th><!--T-->通知フォーム<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->管理者宛メールの宛先、件名、本文などに使うフォームを選びます。<!--/T-->"></i></th>
+          <td>
+            <div class="df-like-admin-form-select">
+              <select class="acms-admin-form-width-medium js-df-like-notify-form-select" data-config-value="{df_like_notify_form_id}">
+                <option value=""><!--T-->フォームを選択<!--/T--></option>
+              </select>
+              <input type="hidden" name="df_like_notify_form_id" value="{df_like_notify_form_id}" class="js-df-like-notify-form-id" data-config-value="{df_like_notify_form_id}">
+              <input type="number" min="0" value="{df_like_notify_form_id}" class="acms-admin-form-width-mini js-df-like-notify-form-id-fallback" data-config-value="{df_like_notify_form_id}" hidden>
+            </div>
+            <p class="acms-admin-text-muted"><!--T-->メール本文では entry_id, entry_title, entry_url, object_type, object_id, like_count, liked_at, blog_id, referer を使用できます。<!--/T--></p>
+            <div class="df-like-admin-copy-block">
+              <code class="js-df-like-notify-example">&#123;entry_title&#125; にいいねされました。URL: &#123;entry_url&#125; / 現在のいいね数: &#123;like_count&#125; / 日時: &#123;liked_at&#125;</code>
+              <button type="button" class="acms-admin-btn-admin js-df-like-copy-notify-example"><!--T-->例文をコピー<!--/T--></button>
+            </div>
+            <p class="df-like-admin-local-status js-df-like-notify-copy-status" role="status" aria-live="polite"></p>
+            <input type="hidden" name="config[]" value="df_like_notify_form_id">
+          </td>
+        </tr>
+      </table>
+    </section>
+
+  </form>
+
+  <section class="df-like-admin-import">
+    <h2 class="acms-admin-admin-title2"><!--T-->いいね履歴インポート<!--/T--></h2>
+    <p class="acms-admin-text-muted"><!--T-->CSV列: entry_id は必須です。任意で visitor_key, action, created_at, blog_id, object_type, object_id, user_id, referer を指定できます。未指定時は action=like、created_at=インポート時刻、visitor_key=行単位の内部キーで補完します。Excel等で混ざる不可視空白は取り込み時に補正します。<!--/T--></p>
+    <p class="acms-admin-text-muted"><!--T-->同じCSVを再実行しても履歴ログは重複せず、現在のいいね状態に不足があれば補修します。<!--/T--></p>
+    <form class="df-like-admin-import__form js-df-like-import-form">
+      <input type="file" name="df_like_import_csv" accept=".csv,text/csv" class="js-df-like-import-file">
+      <button type="button" class="acms-admin-btn-admin js-df-like-import-dry-run"><!--T-->ドライラン<!--/T--></button>
+      <button type="button" class="acms-admin-btn-admin acms-admin-btn-admin-primary js-df-like-import-run"><!--T-->インポート実行<!--/T--></button>
+    </form>
+    <div class="js-df-like-import-result"></div>
+  </section>
+
+  <h2 class="acms-admin-admin-title2 df-like-admin-section-title"><!--T-->集計<!--/T--></h2>
+
+  <section class="df-like-admin-scope acms-admin-form">
+    <table class="adminTable acms-admin-table-admin-edit">
+      <tr>
+        <th><!--T-->管理画面で集計するブログ<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->このブログの管理画面で集計・履歴・CSV・削除対象に含めるブログ範囲を選びます。<!--/T-->"></i></th>
+        <td>
+          <select name="df_like_analytics_scope" form="df-like-admin-settings-form" class="acms-admin-form-width-medium js-df-like-analytics-scope" data-config-value="{df_like_analytics_scope}" data-default="current_with_descendants">
+            <option value="current_with_descendants"{df_like_analytics_scope:selected#current_with_descendants}><!--T-->現在のブログ＋下層ブログ<!--/T--></option>
+            <option value="current"{df_like_analytics_scope:selected#current}><!--T-->現在のブログのみ<!--/T--></option>
+          </select>
+          <p class="acms-admin-text-muted df-like-admin-scope__note"><!--T-->管理画面の集計・履歴・CSV・削除対象の範囲を切り替えます。いいねの保存先は変わりません。<!--/T--></p>
+          <div class="df-like-admin-scope__rebuild">
+            <button type="button" class="acms-admin-btn-admin js-df-like-rebuild-current"><!--T-->履歴から現在いいねを再構築<!--/T--></button>
+            <p class="acms-admin-text-muted"><!--T-->CSV移行後など、履歴はあるのにフロントの件数へ反映されない時に使います。履歴ログは増やしません。<!--/T--></p>
+          </div>
+          <input type="hidden" name="config[]" value="df_like_analytics_scope" form="df-like-admin-settings-form">
+        </td>
+      </tr>
+    </table>
+  </section>
+
+  <section class="df-like-admin-external-analytics">
+    <h3 class="acms-admin-admin-title2"><!--T-->外部解析表示<!--/T--></h3>
+    <p class="acms-admin-text-muted"><!--T-->公開ページに設置すると、集計データを読み取り専用で表示できます。基本CSSは自動で読み込まれ、集計対象ブログ設定に従います。<!--/T--></p>
+    <div class="df-like-admin-manual__code">
+      <code class="js-df-like-analytics-tag">&lt;!-- BEGIN_MODULE DFLikeAnalytics --&gt;&lt;!-- END_MODULE DFLikeAnalytics --&gt;</code>
+      <button type="button" class="acms-admin-btn-admin js-df-like-copy-analytics"><!--T-->コピー<!--/T--></button>
+    </div>
+    <p class="df-like-admin-local-status js-df-like-analytics-copy-status" role="status" aria-live="polite"></p>
+  </section>
+  <!-- END_MODULE Admin_Config -->
+
+  <form class="df-like-admin-filter js-df-like-filter">
+    <div class="df-like-admin-filter__presets" role="group" aria-label="期間">
+      <button type="button" class="acms-admin-btn-admin js-df-like-preset" data-preset="today"><!--T-->今日<!--/T--></button>
+      <button type="button" class="acms-admin-btn-admin js-df-like-preset" data-preset="7d"><!--T-->7日間<!--/T--></button>
+      <button type="button" class="acms-admin-btn-admin js-df-like-preset" data-preset="30d"><!--T-->30日間<!--/T--></button>
+      <button type="button" class="acms-admin-btn-admin js-df-like-preset" data-preset="all"><!--T-->全期間<!--/T--></button>
+    </div>
+    <div class="df-like-admin-filter__dates">
+      <label><span><!--T-->開始日<!--/T--></span> <input type="date" name="start_date" class="acms-admin-form-width-small js-df-like-start"></label>
+      <label><span><!--T-->終了日<!--/T--></span> <input type="date" name="end_date" class="acms-admin-form-width-small js-df-like-end"></label>
+      <button type="submit" class="acms-admin-btn-admin acms-admin-btn-admin-primary"><!--T-->絞り込み<!--/T--></button>
+    </div>
+  </form>
+
+  <div class="df-like-admin__toolbar">
+    <button type="button" class="acms-admin-btn-admin js-df-like-csv" data-type="ranking"><!--T-->ランキングCSV<!--/T--></button>
+    <button type="button" class="acms-admin-btn-admin js-df-like-csv" data-type="history"><!--T-->履歴CSV<!--/T--></button>
+    <button type="button" class="acms-admin-btn-admin acms-admin-btn-admin-danger js-df-like-delete-logs" hidden><!--T-->期間内の履歴を削除<!--/T--></button>
+    <p class="js-df-like-status acms-admin-text-muted" role="status" aria-live="polite"></p>
+  </div>
+
+  <div class="df-like-admin__summary js-df-like-summary"></div>
+
+  <h3 class="acms-admin-admin-title2"><!--T-->日別推移<!--/T--></h3>
+  <div class="df-like-admin__chart js-df-like-daily"></div>
+
+  <form class="df-like-admin-keyword js-df-like-keyword-form">
+    <label>
+      <span><!--T-->キーワードで絞り込み<!--/T--></span>
+      <input type="search" name="keyword" class="acms-admin-form-width-medium js-df-like-keyword" placeholder="<!--T-->タイトル・ID・対象・参照元・訪問者<!--/T-->">
+    </label>
+    <button type="submit" class="acms-admin-btn-admin"><!--T-->絞り込み<!--/T--></button>
+  </form>
+
+  <h3 class="acms-admin-admin-title2"><!--T-->人気のエントリー<!--/T--></h3>
+  <div class="js-df-like-ranking"></div>
+
+  <h3 class="acms-admin-admin-title2"><!--T-->いいね履歴<!--/T--></h3>
+  <div class="js-df-like-history"></div>
+
+  <div class="df-like-admin-errors__header">
+    <h3 class="acms-admin-admin-title2"><!--T-->最近のエラー<!--/T--></h3>
+    <button type="button" class="acms-admin-btn-admin acms-admin-btn-admin-danger js-df-like-delete-errors" hidden><!--T-->エラー履歴を削除<!--/T--></button>
+  </div>
+  <p class="acms-admin-text-muted"><!--T-->通知・インポート・同期・想定外のいいねPOST失敗を最新20件まで表示します。<!--/T--></p>
+  <p class="df-like-admin-local-status js-df-like-error-status acms-admin-text-muted" role="status" aria-live="polite"></p>
+  <div class="df-like-admin-errors js-df-like-errors"></div>
+</section>
+
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-api.js?v=0.7.25"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-render.js?v=0.7.25"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-settings.js?v=0.7.25"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin.js?v=0.7.25"></script>
