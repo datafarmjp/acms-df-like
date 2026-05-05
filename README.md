@@ -31,6 +31,8 @@ extension/plugins/DF_Like/
 
 バグ修正はパッチバージョン、機能追加はマイナーバージョン、互換性を壊す変更はメジャーバージョンとして扱います。
 
+データファーム製 a-blog cms 拡張アプリの共通公開ルールは、[データファーム製 a-blog cms 拡張アプリ公開ガイドライン](docs/DF_EXTENSION_APP_GUIDELINES.md) を参照してください。
+
 ### 文字コード
 
 ボタン文言に絵文字を使う場合は、a-blog cms のConfig保存先テーブル/カラムが `utf8mb4` である必要があります。
