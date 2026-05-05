@@ -140,7 +140,7 @@ class DFLike_Analytics extends ACMS_GET
 
         $url = (string)($row['entry_url'] ?? '');
         if ($url !== '') {
-            return '<a href="' . $this->escape($url) . '">' . $this->escape($title) . '</a>';
+            return '<a href="' . $this->escape($url) . '" target="_blank" rel="noopener noreferrer">' . $this->escape($title) . '</a>';
         }
         return $this->escape($title);
     }
