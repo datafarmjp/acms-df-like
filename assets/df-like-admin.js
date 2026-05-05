@@ -431,12 +431,12 @@
 
   function latestRelease() {
     var cacheKey = 'df_like_latest_release';
-    var cacheTtl = 6 * 60 * 60 * 1000;
+    var cachedRelease = null;
     if (window.localStorage) {
       try {
         var cached = JSON.parse(window.localStorage.getItem(cacheKey) || 'null');
-        if (cached && cached.checked_at && Date.now() - Number(cached.checked_at) < cacheTtl && cached.release) {
-          return Promise.resolve(cached.release);
+        if (cached && cached.release) {
+          cachedRelease = cached.release;
         }
       } catch (error) {
       }
@@ -459,6 +459,11 @@
         }
       }
       return release;
+    }).catch(function(error) {
+      if (cachedRelease) {
+        return cachedRelease;
+      }
+      throw error;
     });
   }
 
