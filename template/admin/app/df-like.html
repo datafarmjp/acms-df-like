@@ -5,15 +5,21 @@
   </div>
 </header>
 
-<link rel="stylesheet" href="/extension/plugins/DF_Like/assets/df-like-admin.css?v=0.7.25">
+<link rel="stylesheet" href="/extension/plugins/DF_Like/assets/df-like-admin.css?v=0.7.27">
 
-<section class="df-like-admin js-df-like-admin">
+<section class="df-like-admin js-df-like-admin" data-current-version="0.7.27">
   <div class="df-like-admin-sticky-header">
     <div>
       <h1 class="acms-admin-admin-title"><!--T-->DFいいね解析<!--/T--></h1>
       <p class="df-like-admin-intro acms-admin-text-muted"><!--T-->「DFいいね」拡張アプリが有効なブログの記事にいいね機能を追加します。<!--/T--></p>
     </div>
     <input type="submit" name="ACMS_POST_Config" value="<!--T-->設定を保存<!--/T-->" form="df-like-admin-settings-form" class="acms-admin-btn-admin acms-admin-btn-admin-primary js-saving-splash df-like-admin-settings__save">
+  </div>
+
+  <div role="alert" class="acms-admin-alert acms-admin-alert-info acms-admin-alert-icon df-like-admin-update-notice js-df-like-update-notice" hidden>
+    <span class="acms-admin-icon acms-admin-icon-news acms-admin-alert-icon-before" aria-hidden="true"></span>
+    <button type="button" class="js-acms-alert-close acms-admin-alert-icon-after js-df-like-update-close">×</button>
+    <span class="js-df-like-update-message"></span>
   </div>
 
   <!-- BEGIN_MODULE Admin_Config -->
@@ -295,9 +301,24 @@
   <p class="acms-admin-text-muted"><!--T-->通知・インポート・同期・想定外のいいねPOST失敗を最新20件まで表示します。<!--/T--></p>
   <p class="df-like-admin-local-status js-df-like-error-status acms-admin-text-muted" role="status" aria-live="polite"></p>
   <div class="df-like-admin-errors js-df-like-errors"></div>
+
+  <section class="df-like-admin-consultation">
+    <h2 class="acms-admin-admin-title2"><!--T-->a-blog cms 拡張アプリ開発のご相談<!--/T--></h2>
+    <p class="acms-admin-text-muted"><!--T-->この拡張アプリは、データファームが a-blog cms の運用改善に取り組む中で開発した実用品です。<!--/T--></p>
+    <ul class="df-like-admin-consultation__examples">
+      <li><!--T-->「このサイトの運用に合わせて、同じような機能がほしい」<!--/T--></li>
+      <li><!--T-->「管理画面の面倒な作業を減らしたい」<!--/T--></li>
+      <li><!--T-->「小さな業務改善を拡張アプリとして形にしたい」<!--/T--></li>
+    </ul>
+    <p class="acms-admin-text-muted"><!--T-->そんなご相談も承っています。内容がまだ固まっていない段階でも、お気軽にご相談ください。<!--/T--></p>
+    <div class="df-like-admin-consultation__actions">
+      <a href="https://www.jicoo.com/event_types/9KVr0WMdvpEl" target="_blank" rel="noopener" class="acms-admin-btn-admin"><!--T-->オンラインミーティングで相談する<!--/T--></a>
+      <a href="https://datafarm.jp/contact" target="_blank" rel="noopener" class="acms-admin-btn-admin"><!--T-->お問い合わせフォームから相談する<!--/T--></a>
+    </div>
+  </section>
 </section>
 
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-api.js?v=0.7.25"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-render.js?v=0.7.25"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-settings.js?v=0.7.25"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin.js?v=0.7.25"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-api.js?v=0.7.27"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-render.js?v=0.7.27"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-settings.js?v=0.7.27"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin.js?v=0.7.27"></script>

@@ -83,7 +83,8 @@
 .df-like-admin-manual,
 .df-like-admin-notify,
 .df-like-admin-preview,
-.df-like-admin-scope {
+.df-like-admin-scope,
+.df-like-admin-consultation {
   margin: 0 0 24px;
   padding: 12px;
   border: 1px solid #d8dee4;
@@ -201,6 +202,29 @@
 
 .df-like-admin-copy-block {
   margin: 8px 0 0;
+}
+
+.df-like-admin-consultation {
+  margin-top: 24px;
+  border-color: #b7dfc1;
+  background: #f1fbf3;
+}
+
+.df-like-admin-consultation__examples {
+  margin: 10px 0 12px;
+  padding-left: 1.5em;
+}
+
+.df-like-admin-consultation__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.df-like-admin-update-notice[hidden] {
+  display: none !important;
 }
 
 .df-like-admin-copy-block code,

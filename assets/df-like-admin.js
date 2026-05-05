@@ -40,6 +40,7 @@
     Admin.setupFeatureToggle(notifyToggle, notifyValue);
     Admin.setupNotifyForms(root);
     Admin.setupPreview(root);
+    setupUpdateNotice(root);
     root.querySelectorAll('.js-df-like-preset').forEach(function(button) {
       button.addEventListener('click', function() {
         applyPreset(button.getAttribute('data-preset'), start, end);
@@ -376,6 +377,141 @@
     var month = String(date.getMonth() + 1).padStart(2, '0');
     var day = String(date.getDate()).padStart(2, '0');
     return year + '-' + month + '-' + day;
+  }
+
+  function setupUpdateNotice(root) {
+    var notice = root.querySelector('.js-df-like-update-notice');
+    var message = root.querySelector('.js-df-like-update-message');
+    var close = root.querySelector('.js-df-like-update-close');
+    var currentVersion = root.getAttribute('data-current-version') || '';
+    if (!notice || !message || !currentVersion || !window.fetch) {
+      return;
+    }
+    if (close) {
+      close.addEventListener('click', function() {
+        notice.hidden = true;
+        var tag = notice.getAttribute('data-release-tag') || '';
+        if (tag && window.localStorage) {
+          try {
+            window.localStorage.setItem('df_like_update_dismissed', tag);
+          } catch (error) {
+          }
+        }
+      });
+    }
+    latestRelease().then(function(release) {
+      if (!release || !release.tag_name || release.prerelease || release.draft) {
+        return;
+      }
+      var latestVersion = normalizeVersion(release.tag_name);
+      if (!isNewerVersion(latestVersion, currentVersion)) {
+        return;
+      }
+      if (isDismissed(release.tag_name)) {
+        return;
+      }
+      var url = release.html_url || 'https://github.com/datafarmjp/acms-df-like/releases/latest';
+      var asset = zipAsset(release.assets || [], latestVersion);
+      if (asset && asset.browser_download_url) {
+        url = asset.browser_download_url;
+      }
+      notice.setAttribute('data-release-tag', release.tag_name);
+      message.innerHTML = '';
+      message.appendChild(document.createTextNode('DF_Like ' + release.tag_name + ' が公開されています。'));
+      var link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.textContent = '最新版をダウンロード';
+      message.appendChild(link);
+      notice.hidden = false;
+    }).catch(function() {
+    });
+  }
+
+  function latestRelease() {
+    var cacheKey = 'df_like_latest_release';
+    var cacheTtl = 6 * 60 * 60 * 1000;
+    if (window.localStorage) {
+      try {
+        var cached = JSON.parse(window.localStorage.getItem(cacheKey) || 'null');
+        if (cached && cached.checked_at && Date.now() - Number(cached.checked_at) < cacheTtl && cached.release) {
+          return Promise.resolve(cached.release);
+        }
+      } catch (error) {
+      }
+    }
+    return fetch('https://api.github.com/repos/datafarmjp/acms-df-like/releases/latest', {
+      headers: {'Accept': 'application/vnd.github+json'}
+    }).then(function(response) {
+      if (!response.ok) {
+        throw new Error('release check failed');
+      }
+      return response.json();
+    }).then(function(release) {
+      if (window.localStorage) {
+        try {
+          window.localStorage.setItem(cacheKey, JSON.stringify({
+            checked_at: Date.now(),
+            release: release
+          }));
+        } catch (error) {
+        }
+      }
+      return release;
+    });
+  }
+
+  function zipAsset(assets, version) {
+    var expected = 'DF_Like-v' + version + '.zip';
+    for (var i = 0; i < assets.length; i++) {
+      if (assets[i] && assets[i].name === expected) {
+        return assets[i];
+      }
+    }
+    for (var j = 0; j < assets.length; j++) {
+      if (assets[j] && /\.zip$/i.test(assets[j].name || '')) {
+        return assets[j];
+      }
+    }
+    return null;
+  }
+
+  function isDismissed(tag) {
+    if (!window.localStorage) {
+      return false;
+    }
+    try {
+      return window.localStorage.getItem('df_like_update_dismissed') === tag;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function normalizeVersion(value) {
+    return String(value || '').replace(/^v/i, '').trim();
+  }
+
+  function isNewerVersion(latest, current) {
+    var latestParts = versionParts(latest);
+    var currentParts = versionParts(current);
+    for (var i = 0; i < Math.max(latestParts.length, currentParts.length); i++) {
+      var left = latestParts[i] || 0;
+      var right = currentParts[i] || 0;
+      if (left > right) {
+        return true;
+      }
+      if (left < right) {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  function versionParts(value) {
+    return normalizeVersion(value).split('.').map(function(part) {
+      return parseInt(part, 10) || 0;
+    });
   }
 
 })();

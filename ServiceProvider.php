@@ -10,7 +10,7 @@ use Acms\Services\Common\HookFactory;
 
 class ServiceProvider extends ACMS_App
 {
-    const VERSION = '0.7.25';
+    const VERSION = '0.7.27';
 
     private static $postWrappers = [
         'DFLikeToggle.php',
