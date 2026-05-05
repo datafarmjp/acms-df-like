@@ -94,7 +94,7 @@ README は導入者向けの使い方、CHANGELOG は変更履歴、このファ
 
 DFいいねは、プラグイン直下をrepo rootにした独立リポジトリとして管理します。
 
-データファーム製の他の a-blog cms 拡張アプリも、共通の公開・最新版通知・相談導線・リリース手順は `docs/DF_EXTENSION_APP_GUIDELINES.md` を必ず参照します。
+データファーム製の他の a-blog cms 拡張アプリも、共通の公開・最新版通知・相談導線・リリース手順は `../_shared/DF_EXTENSION_APP_GUIDELINES.md` を必ず参照します。
 
 repo rootに置くもの:
 
