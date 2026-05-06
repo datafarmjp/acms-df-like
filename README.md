@@ -83,15 +83,27 @@ public function afterGetFire(&$res, $thisModule)
 - `中央`
 - `右`
 
+Twigテンプレートで `module('V2_Entry_Body')` を使う場合も、自動表示設定が有効であれば `entry.body` の前後へ同じ設定でいいねボタンを追加します。Twig側では通常どおり `{{ entry.body|raw }}` を出力してください。
+
 ## 手動設置
 
-任意の場所へ表示したい場合は、`Entry_Body` の `entry:loop` 内に次のタグを配置します。
+任意の場所へいいねボタンを表示したい場合は、利用しているテンプレート形式に合わせて次の記述を配置します。自動表示ONでも、手動設置したボタンは表示されます。
+
+通常テンプレートでは、`Entry_Body` の `entry:loop` 内に次のタグを配置します。
 
 ```html
 <!-- BEGIN_MODULE DFLike ctx="eid/{eid}" --><!-- END_MODULE DFLike -->
 ```
 
 `ctx="eid/{eid}"` を付けることで、その行のエントリーIDを基準にいいねボタンを表示します。通常の記事詳細で `EID` が取れる場合は従来の `<!-- BEGIN_MODULE DFLike --><!-- END_MODULE DFLike -->` でも動作しますが、標準形は `ctx` 付きです。
+
+Twigテンプレートでは、`V2_Entry_Body` のエントリーループ内に次の記述を配置します。
+
+```twig
+{{ entry.dfLikeButton|raw }}
+```
+
+`entry.dfLikeButton` は自動表示設定とは独立して用意されます。管理画面で自動表示をOFFにしていても、Twig側でこの記述を置けばいいねボタンを表示できます。
 
 ## ボタン表示設定
 
@@ -135,8 +147,16 @@ public function afterGetFire(&$res, $thisModule)
 
 これは管理画面そのものを公開する機能ではなく、管理画面で使っている集計データを公開ページ用に安全寄りの項目だけで表示するGETモジュールです。
 
+通常テンプレートでは次のタグを配置します。
+
 ```html
 <!-- BEGIN_MODULE DFLikeAnalytics --><!-- END_MODULE DFLikeAnalytics -->
+```
+
+Twigテンプレートでは、`module('V2_Entry_Body')` の戻り値に追加される `dfLikeAnalytics` を出力します。
+
+```twig
+{{ entryBody.dfLikeAnalytics|raw }}
 ```
 
 以前案内していた `DFLike_Analytics` も互換用に残していますが、a-blog cms のモジュール名解決で `_` が名前空間区切りとして扱われる環境があるため、標準タグは `DFLikeAnalytics` を使ってください。

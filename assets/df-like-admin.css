@@ -56,6 +56,10 @@
   font-weight: bold;
 }
 
+.df-like-admin-code-heading {
+  margin-top: 22px;
+}
+
 .df-like-admin-section-title {
   margin-top: 0;
 }
@@ -84,12 +88,35 @@
 .df-like-admin-notify,
 .df-like-admin-preview,
 .df-like-admin-scope,
+.df-like-admin-external-analytics,
 .df-like-admin-consultation {
   margin: 0 0 24px;
   padding: 12px;
   border: 1px solid #d8dee4;
   border-radius: 6px;
   background: #fff;
+}
+
+.df-like-admin-scope {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.df-like-admin-external-analytics {
+  margin-bottom: 24px;
+  padding: 12px;
+  border: 1px solid #d8dee4;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.df-like-admin-external-analytics .acms-admin-text-muted {
+  margin-bottom: 14px;
+}
+
+.df-like-admin-manual__code {
+  margin: 0 0 14px;
 }
 
 .df-like-admin-notify .adminTable {

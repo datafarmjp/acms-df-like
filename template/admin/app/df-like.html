@@ -5,9 +5,9 @@
   </div>
 </header>
 
-<link rel="stylesheet" href="/extension/plugins/DF_Like/assets/df-like-admin.css?v=0.7.31">
+<link rel="stylesheet" href="/extension/plugins/DF_Like/assets/df-like-admin.css?v=0.7.32">
 
-<section class="df-like-admin js-df-like-admin" data-current-version="0.7.31">
+<section class="df-like-admin js-df-like-admin" data-current-version="0.7.32">
   <div class="df-like-admin-sticky-header">
     <div>
       <h1 class="acms-admin-admin-title"><!--T-->DFいいね解析<!--/T--></h1>
@@ -161,11 +161,18 @@
 
     <section class="df-like-admin-manual">
       <h2 class="acms-admin-admin-title2"><!--T-->手動設置<!--/T--></h2>
-      <p class="acms-admin-text-muted"><!--T-->Entry_Body の entry:loop 内にこのタグを入れると、その行のエントリーIDを基準にいいねボタンを表示できます。自動表示ONでも手動設置したボタンは表示されます。<!--/T--></p>
+      <p class="acms-admin-text-muted"><!--T-->任意の場所にいいねボタンを表示したい場合は、利用しているテンプレート形式に合わせて次の記述を配置してください。自動表示ONでも手動設置したボタンは表示されます。<!--/T--></p>
+      <h3 class="df-like-admin-subtitle df-like-admin-code-heading"><!--T-->通常テンプレート<!--/T--></h3>
       <div class="df-like-admin-manual__code">
         <code class="js-df-like-manual-tag">&lt;!-- BEGIN_MODULE DFLike ctx=&quot;eid/&#123;eid&#125;&quot; --&gt;&lt;!-- END_MODULE DFLike --&gt;</code>
         <button type="button" class="acms-admin-btn-admin js-df-like-copy-tag"><!--T-->コピー<!--/T--></button>
       </div>
+      <h3 class="df-like-admin-subtitle df-like-admin-code-heading"><!--T-->Twig / V2_Entry_Body<!--/T--></h3>
+      <div class="df-like-admin-manual__code">
+        <code class="js-df-like-manual-twig-tag">&#123;&#123; entry.dfLikeButton|raw &#125;&#125;</code>
+        <button type="button" class="acms-admin-btn-admin js-df-like-copy-twig-tag"><!--T-->コピー<!--/T--></button>
+      </div>
+      <p class="acms-admin-text-muted"><!--T-->Twigでは V2_Entry_Body のエントリーループ内で利用できます。<!--/T--></p>
       <p class="df-like-admin-local-status js-df-like-manual-copy-status" role="status" aria-live="polite"></p>
     </section>
 
@@ -246,10 +253,17 @@
   <section class="df-like-admin-external-analytics">
     <h3 class="acms-admin-admin-title2"><!--T-->外部解析表示<!--/T--></h3>
     <p class="acms-admin-text-muted"><!--T-->公開ページに設置すると、集計データを読み取り専用で表示できます。基本CSSは自動で読み込まれ、集計対象ブログ設定に従います。<!--/T--></p>
+    <h4 class="df-like-admin-subtitle df-like-admin-code-heading"><!--T-->通常テンプレート<!--/T--></h4>
     <div class="df-like-admin-manual__code">
       <code class="js-df-like-analytics-tag">&lt;!-- BEGIN_MODULE DFLikeAnalytics --&gt;&lt;!-- END_MODULE DFLikeAnalytics --&gt;</code>
       <button type="button" class="acms-admin-btn-admin js-df-like-copy-analytics"><!--T-->コピー<!--/T--></button>
     </div>
+    <h4 class="df-like-admin-subtitle df-like-admin-code-heading"><!--T-->Twig / V2_Entry_Body<!--/T--></h4>
+    <div class="df-like-admin-manual__code">
+      <code class="js-df-like-analytics-twig-tag">&#123;&#123; entryBody.dfLikeAnalytics|raw &#125;&#125;</code>
+      <button type="button" class="acms-admin-btn-admin js-df-like-copy-analytics-twig"><!--T-->コピー<!--/T--></button>
+    </div>
+    <p class="acms-admin-text-muted"><!--T-->Twigでは module('V2_Entry_Body') の戻り値を entryBody とした場合に利用できます。<!--/T--></p>
     <p class="df-like-admin-local-status js-df-like-analytics-copy-status" role="status" aria-live="polite"></p>
   </section>
   <!-- END_MODULE Admin_Config -->
@@ -318,7 +332,7 @@
   </section>
 </section>
 
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-api.js?v=0.7.31"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-render.js?v=0.7.31"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-settings.js?v=0.7.31"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin.js?v=0.7.31"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-api.js?v=0.7.32"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-render.js?v=0.7.32"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-settings.js?v=0.7.32"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin.js?v=0.7.32"></script>

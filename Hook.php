@@ -2,11 +2,14 @@
 
 namespace Acms\Plugins\DF_Like;
 
+use Acms\Plugins\DF_Like\Services\LikeAnalyticsRenderer;
 use Acms\Plugins\DF_Like\Services\LikeButtonRenderer;
 use Acms\Plugins\DF_Like\Services\LikeBlogContext;
 
 class Hook
 {
+    private static $inserted = [];
+
     /**
      * @param string $res
      * @param \ACMS_GET $thisModule
@@ -14,8 +17,6 @@ class Hook
      */
     public function afterGetFire(&$res, $thisModule)
     {
-        static $inserted = [];
-
         if (!$thisModule instanceof \ACMS_GET || !is_a($thisModule, 'ACMS_GET_Entry_Body')) {
             return;
         }
@@ -30,27 +31,64 @@ class Hook
         if (!LikeBlogContext::isAppEnabled($blogId) || !$this->isAutoInsertEnabled($blogId)) {
             return;
         }
-        $top = $this->autoInsertPlacement('top', $blogId);
-        $bottom = $this->autoInsertPlacement('bottom', $blogId);
-        $topKey = $blogId . ':' . $entryId . ':top';
-        $bottomKey = $blogId . ':' . $entryId . ':bottom';
-        $topButton = $top !== 'none' && !isset($inserted[$topKey])
-            ? LikeButtonRenderer::renderDefault($entryId, $blogId, $top, 'auto')
-            : '';
-        $bottomButton = $bottom !== 'none' && !isset($inserted[$bottomKey])
-            ? LikeButtonRenderer::renderDefault($entryId, $blogId, $bottom, 'auto')
-            : '';
-        if ($topButton === '' && $bottomButton === '') {
+
+        $buttons = $this->autoInsertButtons($entryId, $blogId);
+        if ($buttons['top'] === '' && $buttons['bottom'] === '') {
             return;
         }
 
-        if ($topButton !== '') {
-            $inserted[$topKey] = true;
+        $res = $buttons['top'] . $res . $buttons['bottom'];
+    }
+
+    /**
+     * @param array<string,mixed> $response
+     * @param object $thisModule
+     * @return void
+     */
+    public function afterV2GetFire(&$response, $thisModule)
+    {
+        if (!is_a($thisModule, 'Acms\Modules\Get\V2\Entry\Body')) {
+            return;
         }
-        if ($bottomButton !== '') {
-            $inserted[$bottomKey] = true;
+        if ((defined('ADMIN') && ADMIN)) {
+            return;
         }
-        $res = $topButton . $res . $bottomButton;
+        if (!is_array($response)) {
+            return;
+        }
+
+        $response['dfLikeAnalytics'] = LikeAnalyticsRenderer::renderHtml();
+
+        if (empty($response['items']) || !is_array($response['items'])) {
+            return;
+        }
+
+        foreach ($response['items'] as &$entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+            $entryId = (int)($entry['eid'] ?? 0);
+            if ($entryId <= 0) {
+                continue;
+            }
+            $blogId = LikeBlogContext::entryBlogId($entryId, (int)($entry['bid'] ?? (defined('BID') ? (int)BID : 0)));
+            if (!LikeBlogContext::isAppEnabled($blogId)) {
+                continue;
+            }
+
+            $entry['dfLikeButton'] = LikeButtonRenderer::renderDefault($entryId, $blogId, 'left', 'manual');
+
+            if (!$this->isAutoInsertEnabled($blogId)) {
+                continue;
+            }
+
+            $buttons = $this->autoInsertButtons($entryId, $blogId);
+            if ($buttons['top'] === '' && $buttons['bottom'] === '') {
+                continue;
+            }
+            $entry['body'] = $buttons['top'] . (string)($entry['body'] ?? '') . $buttons['bottom'];
+        }
+        unset($entry);
     }
 
     private function entryId($thisModule): int
@@ -67,6 +105,36 @@ class Hook
     private function isAutoInsertEnabled(int $blogId): bool
     {
         return $this->configValue('df_like_auto_insert', $blogId) === 'enabled';
+    }
+
+    /**
+     * @return array{top:string,bottom:string}
+     */
+    private function autoInsertButtons(int $entryId, int $blogId): array
+    {
+        $top = $this->autoInsertPlacement('top', $blogId);
+        $bottom = $this->autoInsertPlacement('bottom', $blogId);
+        $topKey = $blogId . ':' . $entryId . ':top';
+        $bottomKey = $blogId . ':' . $entryId . ':bottom';
+
+        $topButton = $top !== 'none' && !isset(self::$inserted[$topKey])
+            ? LikeButtonRenderer::renderDefault($entryId, $blogId, $top, 'auto')
+            : '';
+        $bottomButton = $bottom !== 'none' && !isset(self::$inserted[$bottomKey])
+            ? LikeButtonRenderer::renderDefault($entryId, $blogId, $bottom, 'auto')
+            : '';
+
+        if ($topButton !== '') {
+            self::$inserted[$topKey] = true;
+        }
+        if ($bottomButton !== '') {
+            self::$inserted[$bottomKey] = true;
+        }
+
+        return [
+            'top' => $topButton,
+            'bottom' => $bottomButton,
+        ];
     }
 
     private function autoInsertPlacement(string $position, int $blogId): string

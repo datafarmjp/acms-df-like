@@ -266,26 +266,25 @@
   };
 
   Admin.setupManualTagCopy = function(root) {
-    var button = root.querySelector('.js-df-like-copy-tag');
-    var tag = root.querySelector('.js-df-like-manual-tag');
     var status = root.querySelector('.js-df-like-manual-copy-status');
-    if (!button || !tag) {
-      return;
-    }
-    button.addEventListener('click', function() {
-      Admin.copyWithStatus(tag.textContent || '', status, '手動設置タグをコピーしました。', '手動設置タグをコピーできませんでした。');
-    });
+    Admin.setupCopyButton(root, '.js-df-like-copy-tag', '.js-df-like-manual-tag', status, '手動設置タグをコピーしました。', '手動設置タグをコピーできませんでした。');
+    Admin.setupCopyButton(root, '.js-df-like-copy-twig-tag', '.js-df-like-manual-twig-tag', status, 'Twig用の手動設置タグをコピーしました。', 'Twig用の手動設置タグをコピーできませんでした。');
   };
 
   Admin.setupAnalyticsTagCopy = function(root) {
-    var button = root.querySelector('.js-df-like-copy-analytics');
-    var tag = root.querySelector('.js-df-like-analytics-tag');
     var status = root.querySelector('.js-df-like-analytics-copy-status');
+    Admin.setupCopyButton(root, '.js-df-like-copy-analytics', '.js-df-like-analytics-tag', status, 'コピーしました', 'コピーできませんでした');
+    Admin.setupCopyButton(root, '.js-df-like-copy-analytics-twig', '.js-df-like-analytics-twig-tag', status, 'Twig用の解析表示タグをコピーしました。', 'Twig用の解析表示タグをコピーできませんでした。');
+  };
+
+  Admin.setupCopyButton = function(root, buttonSelector, textSelector, status, successMessage, failureMessage) {
+    var button = root.querySelector(buttonSelector);
+    var tag = root.querySelector(textSelector);
     if (!button || !tag) {
       return;
     }
     button.addEventListener('click', function() {
-      Admin.copyWithStatus(tag.textContent || '', status, 'コピーしました', 'コピーできませんでした');
+      Admin.copyWithStatus(tag.textContent || '', status, successMessage, failureMessage);
     });
   };
 
