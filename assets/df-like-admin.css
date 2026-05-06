@@ -250,6 +250,19 @@
   margin-top: 12px;
 }
 
+.df-like-admin-support {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #d8eadc;
+}
+
+.df-like-admin-support__title {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1.5;
+}
+
 .df-like-admin-update-notice[hidden] {
   display: none !important;
 }
