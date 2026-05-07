@@ -113,6 +113,31 @@ class LikeAnalyticsService
         return array_map([self::class, 'csvNormalize'], self::rankingRows($filters, 5000, $filters['start_date'] !== '' || $filters['end_date'] !== ''));
     }
 
+    public static function publicRankingRows(array $filters, int $limit, bool $periodMode = false): array
+    {
+        LikeRepository::ensureTables();
+        $limit = max(1, min(50, $limit));
+        $rows = array_map([self::class, 'normalizeRow'], self::rankingRows($filters, $limit, $periodMode));
+
+        return array_map(function ($row, $index) {
+            $entryId = (int)($row['like_entry_id'] ?? 0);
+            $blogId = (int)($row['like_blog_id'] ?? 0);
+            $title = (string)($row['entry_title'] ?? '');
+            if ($title === '') {
+                $title = $entryId > 0 ? 'entry:' . $entryId : '-';
+            }
+
+            return [
+                'rank' => $index + 1,
+                'entry_id' => $entryId,
+                'blog_id' => $blogId,
+                'entry_title' => $title,
+                'entry_url' => (string)($row['entry_url'] ?? ''),
+                'like_count' => (int)($row['count'] ?? 0),
+            ];
+        }, $rows, array_keys($rows));
+    }
+
     public static function deleteLogs(array $filters): int
     {
         LikeRepository::ensureTables();

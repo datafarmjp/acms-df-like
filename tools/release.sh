@@ -19,6 +19,7 @@ This script:
 Requirements:
   - git
   - zip
+  - php
   - gh auth login
 USAGE
 }
@@ -44,7 +45,14 @@ PLUGIN_PARENT="$(dirname "$ROOT_DIR")"
 TAG="v$VERSION"
 ZIP_PATH="/private/tmp/DF_Like-$TAG.zip"
 NOTES_PATH="/private/tmp/DF_Like-$TAG-release-notes.md"
+JSON_PATH="/private/tmp/DF_Like-$TAG-release.json"
 REPO="datafarmjp/acms-df-like"
+PRODUCT="DF_Like"
+DISPLAY_NAME="DFいいね"
+PHP_BIN="${PHP_BIN:-$(command -v php || true)}"
+if [ -z "$PHP_BIN" ] && [ -d /Applications/MAMP/bin/php ]; then
+  PHP_BIN="$(find /Applications/MAMP/bin/php -path '*/bin/php' -type f | sort -V | tail -1 || true)"
+fi
 
 cd "$ROOT_DIR"
 
@@ -61,6 +69,11 @@ fi
 
 if ! command -v gh >/dev/null 2>&1; then
   echo "gh command was not found. Install GitHub CLI first." >&2
+  exit 1
+fi
+
+if [ -z "$PHP_BIN" ] || [ ! -x "$PHP_BIN" ]; then
+  echo "php command was not found." >&2
   exit 1
 fi
 
@@ -99,6 +112,14 @@ extension/plugins/DF_Like/
 このプラグインは a-blog cms 本体を含みません。利用には別途 a-blog cms の適切なライセンスが必要です。
 EOF
 
+"$PHP_BIN" tools/release-json.php \
+  --product "$PRODUCT" \
+  --display-name "$DISPLAY_NAME" \
+  --version "$VERSION" \
+  --repo "$REPO" \
+  --zip-name "$(basename "$ZIP_PATH")" \
+  --output "$JSON_PATH"
+
 git fetch --tags origin >/dev/null 2>&1 || true
 
 if git rev-parse "$TAG" >/dev/null 2>&1; then
@@ -120,6 +141,47 @@ else
   gh release create "$TAG" "$ZIP_PATH" --repo "$REPO" --title "DF_Like $TAG" --notes-file "$NOTES_PATH"
 fi
 
+sync_release_json() {
+  if [ "${DF_RELEASE_SYNC_ENABLED:-}" != "1" ]; then
+    echo "Release JSON sync skipped. Set DF_RELEASE_SYNC_ENABLED=1 to enable it."
+    return 0
+  fi
+
+  if ! command -v sftp >/dev/null 2>&1; then
+    echo "sftp command was not found. GitHub Release is published, but CMS JSON sync failed." >&2
+    return 1
+  fi
+
+  : "${DF_RELEASE_SYNC_HOST:?DF_RELEASE_SYNC_HOST is required when DF_RELEASE_SYNC_ENABLED=1}"
+  : "${DF_RELEASE_SYNC_USER:?DF_RELEASE_SYNC_USER is required when DF_RELEASE_SYNC_ENABLED=1}"
+  : "${DF_RELEASE_SYNC_REMOTE_PATH:?DF_RELEASE_SYNC_REMOTE_PATH is required when DF_RELEASE_SYNC_ENABLED=1}"
+
+  local port="${DF_RELEASE_SYNC_PORT:-22}"
+  local remote_dir="${DF_RELEASE_SYNC_REMOTE_PATH%/}/$PRODUCT"
+  local remote_latest="$remote_dir/latest.json"
+  local remote_version="$remote_dir/$TAG.json"
+  local batch_file="/private/tmp/$PRODUCT-$TAG-sftp.batch"
+
+  {
+    echo "-mkdir $remote_dir"
+    echo "put $JSON_PATH $remote_version"
+    echo "put $JSON_PATH $remote_latest"
+  } >"$batch_file"
+
+  if sftp -P "$port" -b "$batch_file" "$DF_RELEASE_SYNC_USER@$DF_RELEASE_SYNC_HOST"; then
+    echo "Release JSON synced: $remote_latest"
+    rm -f "$batch_file"
+    return 0
+  fi
+
+  rm -f "$batch_file"
+  echo "GitHub Release is published, but CMS JSON sync failed." >&2
+  return 1
+}
+
+sync_release_json
+
 echo "Published $TAG"
 echo "ZIP: $ZIP_PATH"
+echo "JSON: $JSON_PATH"
 echo "Release: https://github.com/$REPO/releases/tag/$TAG"

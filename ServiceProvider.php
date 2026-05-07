@@ -7,10 +7,11 @@ use Acms\Plugins\DF_Like\Bootstrap;
 use Acms\Plugins\DF_Like\Services\LikeErrorLogger;
 use Acms\Plugins\DF_Like\Services\LikeSchemaService;
 use Acms\Services\Common\HookFactory;
+use Acms\Services\Common\InjectTemplate;
 
 class ServiceProvider extends ACMS_App
 {
-    const VERSION = '0.7.33';
+    const VERSION = '0.7.34';
 
     private static $postWrappers = [
         'DFLikeToggle.php',
@@ -30,13 +31,17 @@ class ServiceProvider extends ACMS_App
         'DFLike.php',
         'DFLikeAnalytics.php',
         'DFLike_Analytics.php',
+        'DFLikeRanking.php',
     ];
 
-    private $adminTemplateMarker = 'DF_Like managed admin app template';
+    private static $v2GetWrappers = [
+        'DFLikeRanking.php',
+    ];
+
     private $postWrapperMarker = 'DF_Like managed POST wrapper';
     private $getWrapperMarker = 'DF_Like managed GET wrapper';
+    private $v2GetWrapperMarker = 'DF_Like managed V2 GET wrapper';
     private $entryIndexAssetMarker = 'DF_Like managed entry index asset';
-    private $minAdminTemplateBytes = 4096;
     private $minWrapperBytes = 300;
 
     public $version = self::VERSION;
@@ -50,6 +55,7 @@ class ServiceProvider extends ACMS_App
     {
         $this->boot(false);
         $this->attachHook();
+        $this->injectAdminTemplate();
     }
 
     public function checkRequirements()
@@ -100,9 +106,9 @@ class ServiceProvider extends ACMS_App
 
     private function syncManagedFiles()
     {
-        $this->syncAdminTemplate();
         $this->syncEntryIndexAsset();
         $this->syncGetWrappers();
+        $this->syncV2GetWrappers();
         $this->syncPostWrappers();
     }
 
@@ -114,42 +120,46 @@ class ServiceProvider extends ACMS_App
         HookFactory::singleton()->attach('DF_Like', new Hook());
     }
 
-    private function syncAdminTemplate()
+    private function injectAdminTemplate()
     {
-        $source = PLUGIN_LIB_DIR . 'DF_Like/template/admin/app/df-like.html';
         $themesDir = defined('THEMES_DIR') ? THEMES_DIR : 'themes/';
-        $dest = SCRIPT_DIR . ltrim($themesDir, '/') . 'system/admin/app/df-like.html';
-
-        if (!$this->isSafeManagedSource($source, $this->adminTemplateMarker, '', $this->minAdminTemplateBytes, '管理画面テンプレート同期をスキップしました')) {
+        $legacyTemplate = SCRIPT_DIR . ltrim($themesDir, '/') . 'system/admin/app/df-like.html';
+        if (is_file($legacyTemplate) && !$this->archiveLegacyAdminTemplate($legacyTemplate)) {
             return;
         }
 
-        $dir = dirname($dest);
-        if (!is_dir($dir)) {
-            @mkdir($dir, 0775, true);
+        InjectTemplate::singleton()->add(
+            'admin-main',
+            PLUGIN_DIR . 'DF_Like/template/admin/app/df-like.html'
+        );
+    }
+
+    private function archiveLegacyAdminTemplate($path)
+    {
+        $content = (string)@file_get_contents($path);
+        if ($content === '' || strpos($content, 'DF_Like managed admin app template') === false) {
+            $this->logSyncSkipped('旧管理画面テンプレートの自動退避をスキップしました', $path, $path, 'legacy_template_not_managed', strlen($content));
+            return false;
         }
-        if (!is_dir($dir)) {
-            return;
+        $backup = $this->legacyAdminTemplateBackupPath($path);
+        if (!@rename($path, $backup)) {
+            $this->logSyncSkipped('旧管理画面テンプレートの自動退避に失敗しました', $path, $backup, 'rename_failed', strlen($content));
+            return false;
         }
 
-        if (is_file($dest)) {
-            if (!is_writable($dest)) {
-                $this->logSyncSkipped('管理画面テンプレート同期をスキップしました', $source, $dest, 'destination_not_writable');
-                return;
-            }
-            $content = (string)@file_get_contents($dest);
-            if ($content !== '' && strpos($content, $this->adminTemplateMarker) === false) {
-                $this->logSyncSkipped('管理画面テンプレート同期をスキップしました', $source, $dest, 'destination_not_managed', strlen($content));
-                return;
-            }
-        } elseif (!is_writable($dir)) {
-            $this->logSyncSkipped('管理画面テンプレート同期をスキップしました', $source, $dest, 'destination_dir_not_writable');
-            return;
-        }
+        return true;
+    }
 
-        if (!@copy($source, $dest)) {
-            $this->logSyncSkipped('管理画面テンプレート同期に失敗しました', $source, $dest, 'copy_failed', @filesize($source));
+    private function legacyAdminTemplateBackupPath($path)
+    {
+        $base = $path . '.df-like-backup-' . date('YmdHis');
+        $backup = $base;
+        $index = 1;
+        while (is_file($backup)) {
+            $backup = $base . '-' . $index;
+            $index++;
         }
+        return $backup;
     }
 
     private function syncEntryIndexAsset()
@@ -270,6 +280,42 @@ class ServiceProvider extends ACMS_App
         }
     }
 
+    private function syncV2GetWrappers()
+    {
+        $sourceDir = PLUGIN_LIB_DIR . 'DF_Like/template/modules/get/v2/';
+        $destDir = SCRIPT_DIR . 'extension/acms/Modules/Get/V2/';
+
+        if (!is_dir($destDir)) {
+            @mkdir($destDir, 0775, true);
+        }
+        if (!is_dir($destDir) || !is_writable($destDir)) {
+            return;
+        }
+
+        foreach (self::$v2GetWrappers as $file) {
+            $source = $sourceDir . $file;
+            $dest = $destDir . $file;
+            $className = basename($file, '.php');
+            if (!$this->isSafeManagedSource($source, $this->v2GetWrapperMarker, $className, $this->minWrapperBytes, 'V2 GETラッパー同期をスキップしました', $dest)) {
+                continue;
+            }
+            if (is_file($dest)) {
+                if (!is_writable($dest)) {
+                    $this->logSyncSkipped('V2 GETラッパー同期をスキップしました', $source, $dest, 'destination_not_writable');
+                    continue;
+                }
+                $content = (string)@file_get_contents($dest);
+                if ($content !== '' && !$this->isManagedV2GetWrapper($content)) {
+                    $this->logSyncSkipped('V2 GETラッパー同期をスキップしました', $source, $dest, 'destination_not_managed', strlen($content));
+                    continue;
+                }
+            }
+            if (!@copy($source, $dest)) {
+                $this->logSyncSkipped('V2 GETラッパー同期に失敗しました', $source, $dest, 'copy_failed', @filesize($source));
+            }
+        }
+    }
+
     private function createTables()
     {
         LikeSchemaService::ensure();
@@ -286,6 +332,14 @@ class ServiceProvider extends ACMS_App
     private function isManagedGetWrapper($content)
     {
         if (strpos($content, $this->getWrapperMarker) !== false) {
+            return true;
+        }
+        return strpos($content, 'Acms\\Plugins\\DF_Like') !== false;
+    }
+
+    private function isManagedV2GetWrapper($content)
+    {
+        if (strpos($content, $this->v2GetWrapperMarker) !== false) {
             return true;
         }
         return strpos($content, 'Acms\\Plugins\\DF_Like') !== false;

@@ -18,7 +18,8 @@ extension/plugins/DF_Like/
 - `extension/acms/GET/DFLikeAnalytics.php`
 - `extension/acms/GET/DFLike_Analytics.php`（互換用）
 - `extension/acms/POST/DFLike*.php`
-- `themes/system/admin/app/df-like.html`
+
+管理画面は `themes/system/admin/app/df-like.html` へコピーせず、a-blog cms の `InjectTemplate` でプラグイン内テンプレートを差し込みます。旧バージョンで作成された `themes/system/admin/app/df-like.html` は、ファイル内に `DF_Like managed admin app template` がある場合だけ自動で同じディレクトリへ退避されます。退避後は最新のInjectTemplate管理画面が表示されます。管理マーカーがないファイルはユーザー編集の可能性があるため自動退避しません。
 
 また、エントリー一覧V2へ「いいね数」列を追加するため、`themes/system/admin/entry/index/v2.html` に管理マーカー付きで `df-like-entry-index.js` の読み込みを追記します。既にDFいいねの管理マーカーがある場合は、そのブロックだけを更新します。
 
@@ -137,7 +138,7 @@ Twigテンプレートでは、`V2_Entry_Body` のエントリーループ内に
 
 管理画面が白画面になり、PHPエラーログに `Class "Acms\Plugins\DF_Like\..." not found` が出る場合は、DFいいね本体と `extension/acms/GET` / `extension/acms/POST` のラッパーが同じバージョンで配置されているか確認し、`0.7.6` 以降へ更新してください。`0.7.6` 以降は、軽量な `Bootstrap.php` 経由でDFいいね自身のクラスを読み込む保険を持っています。
 
-管理画面が白画面でエラーログに決定的な情報がない場合は、`themes/system/admin/app/df-like.html` が0バイトになっていないか確認してください。`0.7.10` 以降は、空ファイルや異常に短い同期元で管理画面テンプレートを上書きしないガードを持っています。
+管理画面が白画面でエラーログに決定的な情報がない場合は、`extension/plugins/DF_Like/template/admin/app/df-like.html` が存在するか、`ServiceProvider` の `InjectTemplate` 登録が動いているか確認してください。`0.7.34` 以降は、管理画面テンプレートを `themes/system/admin/app/df-like.html` へコピーしません。
 
 ログイン中はいいねできるのに、ログインしていない訪問者だけいいねできない場合は、`0.7.11` 以降へ更新してください。`0.7.11` 以降は公開用POSTの `formToken` / CSRF セッション依存を外し、匿名訪問者でもいいね操作と状態取得ができるようにしています。
 
@@ -175,6 +176,71 @@ Twigテンプレートでは、`module('V2_Entry_Body')` の戻り値に追加�
 外部解析表示の基本CSSは `/extension/plugins/DF_Like/assets/df-like.css` から自動で読み込まれます。テーマ側で見た目を調整したい場合は、テーマCSSで `.df-like-analytics` 以下を上書きしてください。
 
 通常のいいねボタンを表示する `DFLike` とは別のタグです。ボタンではなく、解析結果を公開ページへ埋め込みたい場合に使ってください。
+
+## 人気記事ランキング表示
+
+公開ページにいいね数順の人気記事リンク一覧を表示したい場合は、`DFLikeRanking` を使います。
+
+```html
+<!-- BEGIN_MODULE DFLikeRanking -->
+  <!-- DFLikeRanking:limit=5 -->
+  <!-- BEGIN ranking:loop -->
+  <p>
+    <span>{rank}</span>
+    <a href="{entry_url}">{entry_title}</a>
+    <span>{like_count}</span>
+  </p>
+  <!-- END ranking:loop -->
+  <!-- BEGIN notFound -->
+  <p>いいねされた記事はまだありません。</p>
+  <!-- END notFound -->
+<!-- END_MODULE DFLikeRanking -->
+```
+
+通常テンプレートでは、表示件数や期間をモジュール内の `<!-- DFLikeRanking:... -->` コメントで指定します。`limit` は未指定時 `5`、最大 `50` です。集計範囲は管理画面の「管理画面で集計するブログ」に従います。
+
+Twigテンプレートでは `V2_DFLikeRanking` を使い、ランキング配列を自由に描画できます。
+
+```twig
+{% set ranking = module('V2_DFLikeRanking', null, { limit: 5 }) %}
+
+{% for item in ranking.items %}
+  <p>
+    <span>{{ item.rank }}</span>
+    <a href="{{ item.entry_url }}">{{ item.entry_title }}</a>
+    <span>{{ item.like_count }}</span>
+  </p>
+{% else %}
+  <p>いいねされた記事はまだありません。</p>
+{% endfor %}
+```
+
+期間を指定したい場合は、`period` または `start` / `end` を追加します。
+
+```html
+<!-- 今日のランキング -->
+<!-- BEGIN_MODULE DFLikeRanking --><!-- DFLikeRanking:limit=5;period=today --><!-- END_MODULE DFLikeRanking -->
+
+<!-- 直近7日間のランキング -->
+<!-- BEGIN_MODULE DFLikeRanking --><!-- DFLikeRanking:limit=5;period=7d --><!-- END_MODULE DFLikeRanking -->
+
+<!-- 直近30日間のランキング -->
+<!-- BEGIN_MODULE DFLikeRanking --><!-- DFLikeRanking:limit=5;period=30d --><!-- END_MODULE DFLikeRanking -->
+
+<!-- 任意期間のランキング -->
+<!-- BEGIN_MODULE DFLikeRanking --><!-- DFLikeRanking:limit=5;start=2026-05-01;end=2026-05-31 --><!-- END_MODULE DFLikeRanking -->
+```
+
+Twigテンプレートでも同じオプションを指定できます。
+
+```twig
+{% set ranking = module('V2_DFLikeRanking', null, { limit: 5, period: '7d' }) %}
+{% set ranking = module('V2_DFLikeRanking', null, { limit: 5, start: '2026-05-01', end: '2026-05-31' }) %}
+```
+
+期間指定なし、または `period=all` は現在有効ないいね数を集計します。期間指定時は履歴ログをもとに、期間内の `like` を `+1`、`unlike` を `-1` とした純増いいね数でランキングします。
+
+出力できる主な変数は `rank`、`entry_id`、`blog_id`、`entry_title`、`entry_url`、`like_count` です。
 
 ## いいね通知
 

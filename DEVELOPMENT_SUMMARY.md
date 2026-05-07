@@ -113,9 +113,8 @@ repo rootに置くもの:
 
 - `extension/acms/GET/DFLike.php`
 - `extension/acms/POST/DFLike*.php`
-- `themes/system/admin/app/df-like.html`
 
-これらは `ServiceProvider` が `template/` 配下から同期する生成先ファイルとして扱います。
+管理画面テンプレートは `themes/system/admin/app/df-like.html` へ同期せず、`ServiceProvider` が `InjectTemplate` でプラグイン内テンプレートを差し込みます。旧バージョンで生成済みのsystemテーマ側ファイルは、独立repoでは直接管理しません。
 
 本体 `extension/acms/Hook.php` も独立repoには含めません。自動表示が動かない環境向けに、READMEへDFいいねHookブリッジの追記例だけを載せます。
 

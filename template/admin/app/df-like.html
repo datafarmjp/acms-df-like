@@ -1,13 +1,14 @@
 <!-- DF_Like managed admin app template -->
+<!-- BEGIN_IF [%{ADMIN}/eq/app_df-like] -->
 <header>
   <div>
     @include("/admin/topicpath.html")
   </div>
 </header>
 
-<link rel="stylesheet" href="/extension/plugins/DF_Like/assets/df-like-admin.css?v=0.7.33">
+<link rel="stylesheet" href="/extension/plugins/DF_Like/assets/df-like-admin.css?v=0.7.34">
 
-<section class="df-like-admin js-df-like-admin" data-current-version="0.7.33">
+<section class="df-like-admin js-df-like-admin" data-current-version="0.7.34">
   <div class="df-like-admin-sticky-header">
     <div>
       <h1 class="acms-admin-admin-title"><!--T-->DFいいね解析<!--/T--></h1>
@@ -251,21 +252,120 @@
   </section>
 
   <section class="df-like-admin-external-analytics">
-    <h3 class="acms-admin-admin-title2"><!--T-->外部解析表示<!--/T--></h3>
-    <p class="acms-admin-text-muted"><!--T-->公開ページに設置すると、集計データを読み取り専用で表示できます。基本CSSは自動で読み込まれ、集計対象ブログ設定に従います。<!--/T--></p>
-    <h4 class="df-like-admin-subtitle df-like-admin-code-heading"><!--T-->通常テンプレート<!--/T--></h4>
-    <div class="df-like-admin-manual__code">
-      <code class="js-df-like-analytics-tag">&lt;!-- BEGIN_MODULE DFLikeAnalytics --&gt;&lt;!-- END_MODULE DFLikeAnalytics --&gt;</code>
-      <button type="button" class="acms-admin-btn-admin js-df-like-copy-analytics"><!--T-->コピー<!--/T--></button>
+    <h3 class="acms-admin-admin-title2"><!--T-->外部表示<!--/T--></h3>
+    <p class="acms-admin-text-muted"><!--T-->公開ページで使う解析表示・人気ランキングの設置方法を確認できます。<!--/T--></p>
+    <div class="df-like-admin-external-analytics__actions">
+      <button type="button" class="acms-admin-btn-admin js-df-like-snippet-open" data-df-like-modal="analytics"><!--T-->解析表示の設置方法を見る<!--/T--></button>
+      <button type="button" class="acms-admin-btn-admin js-df-like-snippet-open" data-df-like-modal="ranking"><!--T-->人気ランキングの設置方法を見る<!--/T--></button>
     </div>
-    <h4 class="df-like-admin-subtitle df-like-admin-code-heading"><!--T-->Twig / V2_Entry_Body<!--/T--></h4>
-    <div class="df-like-admin-manual__code">
-      <code class="js-df-like-analytics-twig-tag">&#123;&#123; entryBody.dfLikeAnalytics|raw &#125;&#125;</code>
-      <button type="button" class="acms-admin-btn-admin js-df-like-copy-analytics-twig"><!--T-->コピー<!--/T--></button>
-    </div>
-    <p class="acms-admin-text-muted"><!--T-->Twigでは module('V2_Entry_Body') の戻り値を entryBody とした場合に利用できます。<!--/T--></p>
-    <p class="df-like-admin-local-status js-df-like-analytics-copy-status" role="status" aria-live="polite"></p>
   </section>
+
+  <div class="acms-admin-modal out df-like-admin-snippet-modal js-df-like-snippet-modal" data-df-like-modal="analytics" hidden>
+    <div class="acms-admin-modal-dialog large acms-admin-modal-dialog-scrollable" role="dialog" aria-modal="true" aria-labelledby="df-like-analytics-modal-title" tabindex="-1">
+      <div class="acms-admin-modal-content">
+        <header class="acms-admin-modal-header">
+          <h1 class="acms-admin-modal-heading" id="df-like-analytics-modal-title"><!--T-->解析表示の設置方法<!--/T--></h1>
+          <button type="button" class="acms-admin-modal-hide js-df-like-snippet-close">
+            <i class="acms-admin-icon-delete"></i>
+            <span class="acms-admin-hide-visually"><!--T-->閉じる<!--/T--></span>
+          </button>
+        </header>
+        <div class="acms-admin-modal-body">
+          <section class="df-like-admin-snippet-modal__section">
+            <h2 class="df-like-admin-subtitle"><!--T-->通常テンプレート<!--/T--></h2>
+            <p class="acms-admin-text-muted"><!--T-->公開ページに設置すると、集計データを読み取り専用で表示できます。基本CSSは自動で読み込まれ、集計対象ブログ設定に従います。<!--/T--></p>
+            <div class="df-like-admin-manual__code">
+              <code class="js-df-like-analytics-tag">&lt;!-- BEGIN_MODULE DFLikeAnalytics --&gt;&lt;!-- END_MODULE DFLikeAnalytics --&gt;</code>
+              <button type="button" class="acms-admin-btn-admin js-df-like-copy-analytics"><!--T-->コピー<!--/T--></button>
+            </div>
+            <p class="df-like-admin-local-status js-df-like-analytics-copy-status" role="status" aria-live="polite"></p>
+          </section>
+          <section class="df-like-admin-snippet-modal__section">
+            <h2 class="df-like-admin-subtitle"><!--T-->Twig / V2_Entry_Body<!--/T--></h2>
+            <p class="acms-admin-text-muted"><!--T-->Twigでは module('V2_Entry_Body') の戻り値を entryBody とした場合に利用できます。<!--/T--></p>
+            <div class="df-like-admin-manual__code">
+              <code class="js-df-like-analytics-twig-tag">&#123;&#123; entryBody.dfLikeAnalytics|raw &#125;&#125;</code>
+              <button type="button" class="acms-admin-btn-admin js-df-like-copy-analytics-twig"><!--T-->コピー<!--/T--></button>
+            </div>
+            <p class="df-like-admin-local-status js-df-like-analytics-twig-copy-status" role="status" aria-live="polite"></p>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="acms-admin-modal out df-like-admin-snippet-modal js-df-like-snippet-modal" data-df-like-modal="ranking" hidden>
+    <div class="acms-admin-modal-dialog large acms-admin-modal-dialog-scrollable" role="dialog" aria-modal="true" aria-labelledby="df-like-ranking-modal-title" tabindex="-1">
+      <div class="acms-admin-modal-content">
+        <header class="acms-admin-modal-header">
+          <h1 class="acms-admin-modal-heading" id="df-like-ranking-modal-title"><!--T-->人気ランキングの設置方法<!--/T--></h1>
+          <button type="button" class="acms-admin-modal-hide js-df-like-snippet-close">
+            <i class="acms-admin-icon-delete"></i>
+            <span class="acms-admin-hide-visually"><!--T-->閉じる<!--/T--></span>
+          </button>
+        </header>
+        <div class="acms-admin-modal-body">
+          <section class="df-like-admin-snippet-modal__section">
+            <h2 class="df-like-admin-subtitle"><!--T-->通常テンプレート<!--/T--></h2>
+            <p class="acms-admin-text-muted"><!--T-->いいね数順の記事リンク一覧だけを表示したい場合は、公開ページに次のモジュールを設置できます。<!--/T--></p>
+            <div class="df-like-admin-manual__code">
+              <code class="js-df-like-ranking-tag">&lt;!-- BEGIN_MODULE DFLikeRanking --&gt;&lt;!-- DFLikeRanking:limit=5 --&gt;&lt;!-- BEGIN ranking:loop --&gt;&lt;a href=&quot;&#123;entry_url&#125;&quot;&gt;&#123;entry_title&#125;&lt;/a&gt; &#123;like_count&#125;&lt;!-- END ranking:loop --&gt;&lt;!-- END_MODULE DFLikeRanking --&gt;</code>
+              <button type="button" class="acms-admin-btn-admin js-df-like-copy-ranking"><!--T-->コピー<!--/T--></button>
+            </div>
+            <p class="df-like-admin-local-status js-df-like-ranking-copy-status" role="status" aria-live="polite"></p>
+          </section>
+          <section class="df-like-admin-snippet-modal__section">
+            <h2 class="df-like-admin-subtitle"><!--T-->Twig / V2_DFLikeRanking<!--/T--></h2>
+            <p class="acms-admin-text-muted"><!--T-->Twigでは V2_DFLikeRanking からランキング配列を取得できます。<!--/T--></p>
+            <div class="df-like-admin-manual__code">
+              <code class="js-df-like-ranking-v2-tag">&#123;% set ranking = module('V2_DFLikeRanking', null, &#123; limit: 5 &#125;) %&#125;
+&#123;% for item in ranking.items %&#125;
+  &lt;p&gt;&lt;span&gt;&#123;&#123; item.rank &#125;&#125;&lt;/span&gt; &lt;a href=&quot;&#123;&#123; item.entry_url &#125;&#125;&quot;&gt;&#123;&#123; item.entry_title &#125;&#125;&lt;/a&gt; &lt;span&gt;&#123;&#123; item.like_count &#125;&#125;&lt;/span&gt;&lt;/p&gt;
+&#123;% else %&#125;
+  &lt;p&gt;いいねされた記事はまだありません。&lt;/p&gt;
+&#123;% endfor %&#125;</code>
+              <button type="button" class="acms-admin-btn-admin js-df-like-copy-ranking-v2"><!--T-->コピー<!--/T--></button>
+            </div>
+            <p class="df-like-admin-local-status js-df-like-ranking-v2-copy-status" role="status" aria-live="polite"></p>
+          </section>
+          <section class="df-like-admin-snippet-modal__section df-like-admin-snippet-modal__section--sub">
+            <h2 class="df-like-admin-snippet-modal__subheading"><!--T-->オプション指定方法<!--/T--></h2>
+            <p class="acms-admin-text-muted"><!--T-->必要に応じて、ランキングの表示件数や集計期間を指定できます。通常テンプレートではモジュール内の <code>&lt;!-- DFLikeRanking:... --&gt;</code> コメントで指定し、Twig/V2では module() の第3引数に指定します。<!--/T--></p>
+            <dl class="df-like-admin-snippet-modal__terms">
+              <div>
+                <dt><code>limit</code></dt>
+                <dd><!--T-->表示件数です。未指定時は <code>5</code>、最大 <code>50</code> です。<!--/T--></dd>
+              </div>
+              <div>
+                <dt><code>period</code></dt>
+                <dd><!--T-->集計期間です。<code>all</code>、<code>today</code>、<code>7d</code>、<code>30d</code> を指定できます。<!--/T--></dd>
+              </div>
+              <div>
+                <dt><code>start</code></dt>
+                <dd><!--T-->任意期間の開始日です。<code>YYYY-MM-DD</code> 形式で指定します。<!--/T--></dd>
+              </div>
+              <div>
+                <dt><code>end</code></dt>
+                <dd><!--T-->任意期間の終了日です。<code>YYYY-MM-DD</code> 形式で指定します。<!--/T--></dd>
+              </div>
+            </dl>
+            <div class="df-like-admin-snippet-modal__examples">
+              <div>
+                <h3 class="df-like-admin-snippet-modal__example-title"><!--T-->通常テンプレート<!--/T--></h3>
+                <code>&lt;!-- BEGIN_MODULE DFLikeRanking --&gt;&lt;!-- DFLikeRanking:limit=5;period=7d --&gt;&lt;!-- END_MODULE DFLikeRanking --&gt;
+&lt;!-- BEGIN_MODULE DFLikeRanking --&gt;&lt;!-- DFLikeRanking:limit=5;start=2026-05-01;end=2026-05-31 --&gt;&lt;!-- END_MODULE DFLikeRanking --&gt;</code>
+              </div>
+              <div>
+                <h3 class="df-like-admin-snippet-modal__example-title"><!--T-->Twig / V2_DFLikeRanking<!--/T--></h3>
+                <code>&#123;% set ranking = module('V2_DFLikeRanking', null, &#123; limit: 5, period: '7d' &#125;) %&#125;
+&#123;% set ranking = module('V2_DFLikeRanking', null, &#123; limit: 5, start: '2026-05-01', end: '2026-05-31' &#125;) %&#125;</code>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
   <!-- END_MODULE Admin_Config -->
 
   <form class="df-like-admin-filter js-df-like-filter">
@@ -336,7 +436,8 @@
   </section>
 </section>
 
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-api.js?v=0.7.33"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-render.js?v=0.7.33"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-settings.js?v=0.7.33"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin.js?v=0.7.33"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-api.js?v=0.7.34"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-render.js?v=0.7.34"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-settings.js?v=0.7.34"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin.js?v=0.7.34"></script>
+<!-- END_IF -->
