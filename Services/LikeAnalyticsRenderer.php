@@ -25,7 +25,7 @@ class LikeAnalyticsRenderer
 
         return $this->assetTag()
             . '<section class="df-like-analytics">'
-            . '<h2 class="df-like-analytics__title">いいね解析</h2>'
+            . '<h2 id="df-like-analytics" class="df-like-analytics__title">いいね解析</h2>'
             . $this->summary($data['summary'] ?? [])
             . $this->daily($data['daily'] ?? [])
             . $this->ranking($data['ranking'] ?? [])
@@ -56,7 +56,7 @@ class LikeAnalyticsRenderer
         ];
 
         $html = '<section class="df-like-analytics__section df-like-analytics__summary">'
-            . '<h3 class="df-like-analytics__heading">サマリー</h3>'
+            . '<h3 id="df-like-analytics-summary" class="df-like-analytics__heading">サマリー</h3>'
             . '<dl class="df-like-analytics__summary-list">';
         foreach ($items as $label => $value) {
             $html .= '<div class="df-like-analytics__summary-item">'
@@ -70,7 +70,7 @@ class LikeAnalyticsRenderer
     private function daily(array $daily): string
     {
         $html = '<section class="df-like-analytics__section df-like-analytics__daily">'
-            . '<h3 class="df-like-analytics__heading">日別推移</h3>';
+            . '<h3 id="df-like-analytics-daily" class="df-like-analytics__heading">日別推移</h3>';
         if (!$daily) {
             return $html . '<p class="df-like-analytics__empty">日別データはまだありません。</p></section>';
         }
@@ -90,7 +90,7 @@ class LikeAnalyticsRenderer
     private function ranking(array $ranking): string
     {
         $html = '<section class="df-like-analytics__section df-like-analytics__ranking">'
-            . '<h3 class="df-like-analytics__heading">人気のエントリー</h3>';
+            . '<h3 id="df-like-analytics-ranking" class="df-like-analytics__heading">人気のエントリー</h3>';
         if (!$ranking) {
             return $html . '<p class="df-like-analytics__empty">いいねされたエントリーはまだありません。</p></section>';
         }
@@ -117,7 +117,7 @@ class LikeAnalyticsRenderer
     private function history(array $history): string
     {
         $html = '<section class="df-like-analytics__section df-like-analytics__history">'
-            . '<h3 class="df-like-analytics__heading">いいね履歴</h3>';
+            . '<h3 id="df-like-analytics-history" class="df-like-analytics__heading">いいね履歴</h3>';
         if (!$history) {
             return $html . '<p class="df-like-analytics__empty">履歴はまだありません。</p></section>';
         }
