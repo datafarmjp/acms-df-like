@@ -2,6 +2,8 @@
 
 namespace Acms\Plugins\DF_Like\Services;
 
+use Acms\Modules\Get\Helpers\Entry\EntryHelper;
+
 class LikeAnalyticsService
 {
     public static function adminData(int $limit = 50, ?array $filters = null, int $historyPage = 1, int $historyPerPage = 50): array
@@ -117,7 +119,7 @@ class LikeAnalyticsService
     {
         LikeRepository::ensureTables();
         $limit = max(1, min(50, $limit));
-        $rows = array_map([self::class, 'normalizeRow'], self::rankingRows($filters, $limit, $periodMode));
+        $rows = self::withEntryImages(array_map([self::class, 'normalizeRow'], self::rankingRows($filters, $limit, $periodMode)));
 
         return array_map(function ($row, $index) {
             $entryId = (int)($row['like_entry_id'] ?? 0);
@@ -134,6 +136,13 @@ class LikeAnalyticsService
                 'entry_title' => $title,
                 'entry_url' => (string)($row['entry_url'] ?? ''),
                 'like_count' => (int)($row['count'] ?? 0),
+                'entry_image' => $row['entry_image'] ?? null,
+                'entry_image_path' => (string)($row['entry_image_path'] ?? ''),
+                'entry_image_thumbnail' => (string)($row['entry_image_thumbnail'] ?? ''),
+                'entry_image_alt' => (string)($row['entry_image_alt'] ?? ''),
+                'entry_image_width' => (int)($row['entry_image_width'] ?? 0),
+                'entry_image_height' => (int)($row['entry_image_height'] ?? 0),
+                'entry_image_ratio' => (string)($row['entry_image_ratio'] ?? ''),
             ];
         }, $rows, array_keys($rows));
     }
@@ -162,12 +171,12 @@ class LikeAnalyticsService
             [$where, $params] = self::logFilterWhere($filters, 'log');
             [$where, $params] = self::rankingKeywordWhere($where, $params, $filters, 'log', 'entry', true);
             return \DB::query([
-                'sql' => 'SELECT log.log_blog_id AS like_blog_id, log.log_entry_id AS like_entry_id, log.log_object_type AS like_object_type, log.log_object_id AS like_object_id, entry.entry_title,
+                'sql' => 'SELECT log.log_blog_id AS like_blog_id, log.log_entry_id AS like_entry_id, log.log_object_type AS like_object_type, log.log_object_id AS like_object_id, entry.entry_id, entry.entry_title, entry.entry_primary_image,
                         SUM(CASE WHEN log.log_action = \'like\' THEN 1 WHEN log.log_action = \'unlike\' THEN -1 ELSE 0 END) AS count
                     FROM `' . LikeRepository::table('df_like_log') . '` AS log
                     LEFT JOIN `' . LikeRepository::table('entry') . '` AS entry ON entry.entry_id = log.log_entry_id
                     ' . $where . '
-                    GROUP BY log.log_blog_id, log.log_entry_id, log.log_object_type, log.log_object_id, entry.entry_title
+                    GROUP BY log.log_blog_id, log.log_entry_id, log.log_object_type, log.log_object_id, entry.entry_id, entry.entry_title, entry.entry_primary_image
                     HAVING count > 0
                     ORDER BY count DESC, log.log_entry_id DESC
                     LIMIT ' . $limit,
@@ -178,15 +187,78 @@ class LikeAnalyticsService
         [$where, $params] = self::likeFilterWhere($filters, 'liked');
         [$where, $params] = self::rankingKeywordWhere($where, $params, $filters, 'liked', 'entry', false);
         return \DB::query([
-            'sql' => 'SELECT liked.like_blog_id, liked.like_entry_id, liked.like_object_type, liked.like_object_id, entry.entry_title, COUNT(*) AS count
+            'sql' => 'SELECT liked.like_blog_id, liked.like_entry_id, liked.like_object_type, liked.like_object_id, entry.entry_id, entry.entry_title, entry.entry_primary_image, COUNT(*) AS count
                 FROM `' . LikeRepository::table('df_like') . '` AS liked
                 LEFT JOIN `' . LikeRepository::table('entry') . '` AS entry ON entry.entry_id = liked.like_entry_id
                 ' . $where . '
-                GROUP BY liked.like_blog_id, liked.like_entry_id, liked.like_object_type, liked.like_object_id, entry.entry_title
+                GROUP BY liked.like_blog_id, liked.like_entry_id, liked.like_object_type, liked.like_object_id, entry.entry_id, entry.entry_title, entry.entry_primary_image
                 ORDER BY count DESC, liked.like_entry_id DESC
                 LIMIT ' . $limit,
             'params' => $params,
         ], 'all') ?: [];
+    }
+
+    private static function withEntryImages(array $rows): array
+    {
+        if (!$rows) {
+            return [];
+        }
+
+        $helper = new EntryHelper([
+            'bid' => defined('BID') ? (int)BID : null,
+            'config' => [],
+        ]);
+        $entryRows = array_values(array_filter(array_map(static function ($row) {
+            $entryId = (int)($row['entry_id'] ?? $row['like_entry_id'] ?? 0);
+            if ($entryId <= 0) {
+                return null;
+            }
+            return [
+                'entry_id' => $entryId,
+                'entry_primary_image' => (string)($row['entry_primary_image'] ?? ''),
+            ];
+        }, $rows)));
+
+        $mainImageData = $entryRows ? $helper->eagerLoad($entryRows, [
+            'includeMainImage' => true,
+            'mainImageTarget' => 'unit',
+        ]) : [];
+
+        foreach ($rows as $index => $row) {
+            $entryId = (int)($row['entry_id'] ?? $row['like_entry_id'] ?? 0);
+            $image = null;
+            if ($entryId > 0 && isset($mainImageData['mainImage'])) {
+                $image = $helper->buildMainImage((string)($row['entry_primary_image'] ?? ''), $entryId, $mainImageData['mainImage']);
+            }
+            $rows[$index] = array_merge($row, self::entryImageVars($image));
+        }
+
+        return $rows;
+    }
+
+    private static function entryImageVars(?array $image): array
+    {
+        if (!$image) {
+            return [
+                'entry_image' => null,
+                'entry_image_path' => '',
+                'entry_image_thumbnail' => '',
+                'entry_image_alt' => '',
+                'entry_image_width' => 0,
+                'entry_image_height' => 0,
+                'entry_image_ratio' => '',
+            ];
+        }
+
+        return [
+            'entry_image' => $image,
+            'entry_image_path' => (string)($image['path'] ?? ''),
+            'entry_image_thumbnail' => (string)($image['thumbnail'] ?? ''),
+            'entry_image_alt' => (string)($image['alt'] ?? ''),
+            'entry_image_width' => (int)($image['width'] ?? 0),
+            'entry_image_height' => (int)($image['height'] ?? 0),
+            'entry_image_ratio' => (string)($image['ratio'] ?? ''),
+        ];
     }
 
     public static function blogFilterWhere(array $filters, string $alias, string $column): array

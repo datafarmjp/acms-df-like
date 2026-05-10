@@ -482,6 +482,7 @@
         return;
       }
       var url = release.html_url || 'https://github.com/datafarmjp/acms-df-like/releases/latest';
+      var changelogUrl = changelogUrlForTag(release.tag_name);
       var asset = zipAsset(release.assets || [], latestVersion);
       if (asset && asset.browser_download_url) {
         url = asset.browser_download_url;
@@ -495,9 +496,26 @@
       link.rel = 'noopener';
       link.textContent = '最新版をダウンロード';
       message.appendChild(link);
+      if (changelogUrl) {
+        message.appendChild(document.createTextNode(' / '));
+        var changelogLink = document.createElement('a');
+        changelogLink.href = changelogUrl;
+        changelogLink.target = '_blank';
+        changelogLink.rel = 'noopener';
+        changelogLink.textContent = '変更内容を見る';
+        message.appendChild(changelogLink);
+      }
       notice.hidden = false;
     }).catch(function() {
     });
+  }
+
+  function changelogUrlForTag(tag) {
+    var normalizedTag = String(tag || '').trim();
+    if (!/^v\d+\.\d+\.\d+$/.test(normalizedTag)) {
+      return '';
+    }
+    return 'https://github.com/datafarmjp/acms-df-like/blob/' + normalizedTag + '/CHANGELOG.md#' + normalizedTag.replace(/\./g, '-');
   }
 
   function latestRelease() {

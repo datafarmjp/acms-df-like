@@ -59,6 +59,7 @@ foreach ($body as $line) {
 
 $repo = trim((string)$options['repo']);
 $zipName = trim((string)$options['zip-name']);
+$anchor = 'v' . str_replace('.', '-', $version);
 $payload = [
     'product' => (string)$options['product'],
     'display_name' => (string)$options['display-name'],
@@ -67,6 +68,7 @@ $payload = [
     'date' => $date,
     'title' => (string)$options['display-name'] . ' ' . $tag,
     'github_release_url' => "https://github.com/{$repo}/releases/tag/{$tag}",
+    'changelog_url' => "https://github.com/{$repo}/blob/{$tag}/CHANGELOG.md#{$anchor}",
     'download_url' => "https://github.com/{$repo}/releases/download/{$tag}/{$zipName}",
     'changes' => $changes,
     'body_markdown' => $bodyMarkdown,

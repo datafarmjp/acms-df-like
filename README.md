@@ -2,6 +2,12 @@
 
 a-blog cms のエントリーに「いいね」ボタンを追加し、管理画面で履歴・解析・通知・移行補助を扱える拡張アプリです。
 
+## ダウンロード
+
+最新版は [GitHub Releases](https://github.com/datafarmjp/acms-df-like/releases/latest) からダウンロードできます。
+
+各バージョンの変更内容は、GitHub Release本文または [CHANGELOG.md](./CHANGELOG.md) を確認してください。
+
 ## インストール
 
 このリポジトリは、a-blog cms のプラグインディレクトリ直下に置く前提です。
@@ -29,6 +35,8 @@ extension/plugins/DF_Like/
 ### バージョン管理
 
 配布時は、`ServiceProvider::$version`、管理画面/フロントのアセットクエリ、`CHANGELOG.md` のバージョンを揃えます。
+
+`CHANGELOG.md` の各バージョン見出しの直前には、`<a id="v0-7-36"></a>` 形式の固定アンカーを置きます。リリーススクリプトはこのアンカーを使って、タグ時点のCHANGELOG該当箇所へリンクします。
 
 バグ修正はパッチバージョン、機能追加はマイナーバージョン、互換性を壊す変更はメジャーバージョンとして扱います。
 
@@ -187,6 +195,9 @@ Twigテンプレートでは、`module('V2_Entry_Body')` の戻り値に追加�
   <!-- BEGIN ranking:loop -->
   <p>
     <span>{rank}</span>
+    <!-- BEGIN_IF [{entry_image_path}/nem] -->
+    <img src="%{ROOT_DIR}{entry_image_path}[resizeImg(160)]" alt="{entry_image_alt}" loading="lazy">
+    <!-- END_IF -->
     <a href="{entry_url}">{entry_title}</a>
     <span>{like_count}</span>
   </p>
@@ -207,6 +218,9 @@ Twigテンプレートでは `V2_DFLikeRanking` を使い、ランキング配�
 {% for item in ranking.items %}
   <p>
     <span>{{ item.rank }}</span>
+    {% if item.entry_image_thumbnail %}
+      <img src="{{ item.entry_image_thumbnail }}" alt="{{ item.entry_image_alt }}" loading="lazy">
+    {% endif %}
     <a href="{{ item.entry_url }}">{{ item.entry_title }}</a>
     <span>{{ item.like_count }}</span>
   </p>
@@ -241,6 +255,7 @@ Twigテンプレートでも同じオプションを指定できます。
 期間指定なし、または `period=all` は現在有効ないいね数を集計します。期間指定時は履歴ログをもとに、期間内の `like` を `+1`、`unlike` を `-1` とした純増いいね数でランキングします。
 
 出力できる主な変数は `rank`、`entry_id`、`blog_id`、`entry_title`、`entry_url`、`like_count` です。
+記事に標準メイン画像が設定されている場合は、`entry_image_path`、`entry_image_thumbnail`、`entry_image_alt`、`entry_image_width`、`entry_image_height`、`entry_image_ratio` も利用できます。画像がない場合、画像系の値は空になります。
 
 ## いいね通知
 

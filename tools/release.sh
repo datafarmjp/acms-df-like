@@ -44,8 +44,8 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 PLUGIN_PARENT="$(dirname "$ROOT_DIR")"
 TAG="v$VERSION"
 ZIP_PATH="/private/tmp/DF_Like-$TAG.zip"
-NOTES_PATH="/private/tmp/DF_Like-$TAG-release-notes.md"
 JSON_PATH="/private/tmp/DF_Like-$TAG-release.json"
+NOTES_PATH="/private/tmp/DF_Like-$TAG-release-notes.md"
 REPO="datafarmjp/acms-df-like"
 PRODUCT="DF_Like"
 DISPLAY_NAME="DFいいね"
@@ -64,6 +64,12 @@ fi
 
 if ! grep -q "const VERSION = '$VERSION';" ServiceProvider.php; then
   echo "ServiceProvider.php does not contain const VERSION = '$VERSION';" >&2
+  exit 1
+fi
+
+CHANGELOG_ANCHOR="v${VERSION//./-}"
+if ! grep -q "id=\"$CHANGELOG_ANCHOR\"" CHANGELOG.md; then
+  echo "CHANGELOG.md does not contain <a id=\"$CHANGELOG_ANCHOR\"></a>." >&2
   exit 1
 fi
 
@@ -90,28 +96,6 @@ rm -f "$ZIP_PATH"
     -x 'DF_Like/**/.DS_Store'
 )
 
-cat > "$NOTES_PATH" <<EOF
-## 変更内容
-
-詳しくは CHANGELOG.md の \`$TAG\` を参照してください。
-
-## インストール
-
-1. \`DF_Like-$TAG.zip\` をダウンロードします。
-2. ZIPを展開し、\`DF_Like\` フォルダを \`extension/plugins/\` に配置します。
-3. a-blog cms の拡張アプリ管理から \`DFいいね\` をインストール・有効化します。
-
-配置例:
-
-\`\`\`text
-extension/plugins/DF_Like/
-\`\`\`
-
-## 注意
-
-このプラグインは a-blog cms 本体を含みません。利用には別途 a-blog cms の適切なライセンスが必要です。
-EOF
-
 "$PHP_BIN" tools/release-json.php \
   --product "$PRODUCT" \
   --display-name "$DISPLAY_NAME" \
@@ -119,6 +103,31 @@ EOF
   --repo "$REPO" \
   --zip-name "$(basename "$ZIP_PATH")" \
   --output "$JSON_PATH"
+
+"$PHP_BIN" -r '
+$json = json_decode(file_get_contents($argv[1]), true);
+if (!is_array($json)) {
+    fwrite(STDERR, "Failed to read release JSON.\n");
+    exit(1);
+}
+$zip = (string)($json["download_url"] ?? "");
+$changelog = (string)($json["changelog_url"] ?? "");
+$body = trim((string)($json["body_markdown"] ?? ""));
+$zipName = basename($zip);
+echo "## 変更内容\n\n";
+echo ($body !== "" ? $body : "- 変更内容はCHANGELOG.mdを確認してください。") . "\n\n";
+if ($changelog !== "") {
+    echo "[CHANGELOG.md の該当バージョンを開く]({$changelog})\n\n";
+}
+echo "## インストール\n\n";
+echo "1. `{$zipName}` をダウンロードします。\n";
+echo "2. ZIPを展開し、`DF_Like` フォルダを `extension/plugins/` に配置します。\n";
+echo "3. a-blog cms の拡張アプリ管理から `DFいいね` をインストール・有効化します。\n\n";
+echo "配置例:\n\n";
+echo "```text\nextension/plugins/DF_Like/\n```\n\n";
+echo "## 注意\n\n";
+echo "このプラグインは a-blog cms 本体を含みません。利用には別途 a-blog cms の適切なライセンスが必要です。\n";
+' "$JSON_PATH" > "$NOTES_PATH"
 
 git fetch --tags origin >/dev/null 2>&1 || true
 

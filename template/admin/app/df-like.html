@@ -6,9 +6,9 @@
   </div>
 </header>
 
-<link rel="stylesheet" href="/extension/plugins/DF_Like/assets/df-like-admin.css?v=0.7.35">
+<link rel="stylesheet" href="/extension/plugins/DF_Like/assets/df-like-admin.css?v=0.7.36">
 
-<section class="df-like-admin js-df-like-admin" data-current-version="0.7.35">
+<section class="df-like-admin js-df-like-admin" data-current-version="0.7.36">
   <div class="df-like-admin-sticky-header">
     <div>
       <h1 class="acms-admin-admin-title"><!--T-->DFいいね解析<!--/T--></h1>
@@ -309,7 +309,7 @@
             <h2 class="df-like-admin-subtitle"><!--T-->通常テンプレート<!--/T--></h2>
             <p class="acms-admin-text-muted"><!--T-->いいね数順の記事リンク一覧だけを表示したい場合は、公開ページに次のモジュールを設置できます。<!--/T--></p>
             <div class="df-like-admin-manual__code">
-              <code class="js-df-like-ranking-tag">&lt;!-- BEGIN_MODULE DFLikeRanking --&gt;&lt;!-- DFLikeRanking:limit=5 --&gt;&lt;!-- BEGIN ranking:loop --&gt;&lt;a href=&quot;&#123;entry_url&#125;&quot;&gt;&#123;entry_title&#125;&lt;/a&gt; &#123;like_count&#125;&lt;!-- END ranking:loop --&gt;&lt;!-- END_MODULE DFLikeRanking --&gt;</code>
+              <code class="js-df-like-ranking-tag">&lt;!-- BEGIN_MODULE DFLikeRanking --&gt;&lt;!-- DFLikeRanking:limit=5 --&gt;&lt;!-- BEGIN ranking:loop --&gt;&lt;p&gt;&lt;!-- BEGIN_IF [&#123;entry_image_path&#125;/nem] --&gt;&lt;img src=&quot;%&#123;ROOT_DIR&#125;&#123;entry_image_path&#125;[resizeImg(160)]&quot; alt=&quot;&#123;entry_image_alt&#125;&quot; loading=&quot;lazy&quot;&gt;&lt;!-- END_IF --&gt;&lt;a href=&quot;&#123;entry_url&#125;&quot;&gt;&#123;entry_title&#125;&lt;/a&gt; &#123;like_count&#125;&lt;/p&gt;&lt;!-- END ranking:loop --&gt;&lt;!-- END_MODULE DFLikeRanking --&gt;</code>
               <button type="button" class="acms-admin-btn-admin js-df-like-copy-ranking"><!--T-->コピー<!--/T--></button>
             </div>
             <p class="df-like-admin-local-status js-df-like-ranking-copy-status" role="status" aria-live="polite"></p>
@@ -321,6 +321,9 @@
               <code class="js-df-like-ranking-v2-tag">&#123;% set ranking = module('V2_DFLikeRanking', null, &#123; limit: 5 &#125;) %&#125;
 &#123;% for item in ranking.items %&#125;
   &lt;p&gt;&lt;span&gt;&#123;&#123; item.rank &#125;&#125;&lt;/span&gt; &lt;a href=&quot;&#123;&#123; item.entry_url &#125;&#125;&quot;&gt;&#123;&#123; item.entry_title &#125;&#125;&lt;/a&gt; &lt;span&gt;&#123;&#123; item.like_count &#125;&#125;&lt;/span&gt;&lt;/p&gt;
+  &#123;% if item.entry_image_thumbnail %&#125;
+    &lt;img src=&quot;&#123;&#123; item.entry_image_thumbnail &#125;&#125;&quot; alt=&quot;&#123;&#123; item.entry_image_alt &#125;&#125;&quot; loading=&quot;lazy&quot;&gt;
+  &#123;% endif %&#125;
 &#123;% else %&#125;
   &lt;p&gt;いいねされた記事はまだありません。&lt;/p&gt;
 &#123;% endfor %&#125;</code>
@@ -347,6 +350,10 @@
               <div>
                 <dt><code>end</code></dt>
                 <dd><!--T-->任意期間の終了日です。<code>YYYY-MM-DD</code> 形式で指定します。<!--/T--></dd>
+              </div>
+              <div>
+                <dt><code>entry_image_path</code></dt>
+                <dd><!--T-->記事の標準メイン画像のパスです。画像がない場合は空になります。<!--/T--></dd>
               </div>
             </dl>
             <div class="df-like-admin-snippet-modal__examples">
@@ -436,8 +443,8 @@
   </section>
 </section>
 
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-api.js?v=0.7.35"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-render.js?v=0.7.35"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-settings.js?v=0.7.35"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin.js?v=0.7.35"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-api.js?v=0.7.36"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-render.js?v=0.7.36"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-settings.js?v=0.7.36"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin.js?v=0.7.36"></script>
 <!-- END_IF -->
