@@ -117,7 +117,7 @@ $zipName = basename($zip);
 echo "## 変更内容\n\n";
 echo ($body !== "" ? $body : "- 変更内容はCHANGELOG.mdを確認してください。") . "\n\n";
 if ($changelog !== "") {
-    echo "[CHANGELOG.md の該当バージョンを開く]({$changelog})\n\n";
+    echo "[CHANGELOG.md の該当箇所を開く]({$changelog})\n\n";
 }
 echo "## インストール\n\n";
 echo "1. `{$zipName}` をダウンロードします。\n";
