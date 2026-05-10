@@ -219,7 +219,11 @@ class LikeAnalyticsService
             ];
         }, $rows)));
 
-        $mainImageData = $entryRows ? $helper->eagerLoad($entryRows, [
+        $fieldMainImageData = $entryRows ? $helper->eagerLoad($entryRows, [
+            'includeMainImage' => true,
+            'mainImageTarget' => 'field',
+        ]) : [];
+        $unitMainImageData = $entryRows ? $helper->eagerLoad($entryRows, [
             'includeMainImage' => true,
             'mainImageTarget' => 'unit',
         ]) : [];
@@ -227,8 +231,11 @@ class LikeAnalyticsService
         foreach ($rows as $index => $row) {
             $entryId = (int)($row['entry_id'] ?? $row['like_entry_id'] ?? 0);
             $image = null;
-            if ($entryId > 0 && isset($mainImageData['mainImage'])) {
-                $image = $helper->buildMainImage((string)($row['entry_primary_image'] ?? ''), $entryId, $mainImageData['mainImage']);
+            if ($entryId > 0 && isset($fieldMainImageData['mainImage'])) {
+                $image = $helper->buildMainImage((string)($row['entry_primary_image'] ?? ''), $entryId, $fieldMainImageData['mainImage']);
+            }
+            if (!$image && $entryId > 0 && isset($unitMainImageData['mainImage'])) {
+                $image = $helper->buildMainImage((string)($row['entry_primary_image'] ?? ''), $entryId, $unitMainImageData['mainImage']);
             }
             $rows[$index] = array_merge($row, self::entryImageVars($image));
         }
@@ -249,16 +256,33 @@ class LikeAnalyticsService
                 'entry_image_ratio' => '',
             ];
         }
+        $path = self::publicImageUrl((string)($image['path'] ?? ''), (string)($image['type'] ?? ''));
+        $thumbnail = self::publicImageUrl((string)($image['thumbnail'] ?? ''), (string)($image['type'] ?? ''));
 
         return [
             'entry_image' => $image,
-            'entry_image_path' => (string)($image['path'] ?? ''),
-            'entry_image_thumbnail' => (string)($image['thumbnail'] ?? ''),
+            'entry_image_path' => $path,
+            'entry_image_thumbnail' => $thumbnail,
             'entry_image_alt' => (string)($image['alt'] ?? ''),
             'entry_image_width' => (int)($image['width'] ?? 0),
             'entry_image_height' => (int)($image['height'] ?? 0),
             'entry_image_ratio' => (string)($image['ratio'] ?? ''),
         ];
+    }
+
+    private static function publicImageUrl(string $path, string $type): string
+    {
+        $path = trim($path);
+        if ($path === '' || preg_match('@^(?:https?:)?//@', $path) || strpos($path, '/') === 0) {
+            return $path;
+        }
+
+        $base = $type === 'media' && defined('MEDIA_LIBRARY_DIR') ? MEDIA_LIBRARY_DIR : (defined('ARCHIVES_DIR') ? ARCHIVES_DIR : '');
+        if ($base === '') {
+            return $path;
+        }
+
+        return '/' . trim($base, '/') . '/' . ltrim($path, '/');
     }
 
     public static function blogFilterWhere(array $filters, string $alias, string $column): array

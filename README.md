@@ -195,8 +195,8 @@ Twigテンプレートでは、`module('V2_Entry_Body')` の戻り値に追加�
   <!-- BEGIN ranking:loop -->
   <p>
     <span>{rank}</span>
-    <!-- BEGIN_IF [{entry_image_path}/nem] -->
-    <img src="%{ROOT_DIR}{entry_image_path}[resizeImg(160)]" alt="{entry_image_alt}" loading="lazy">
+    <!-- BEGIN_IF [{entry_image_thumbnail}/nem] -->
+    <img src="{entry_image_thumbnail}" alt="{entry_image_alt}" loading="lazy">
     <!-- END_IF -->
     <a href="{entry_url}">{entry_title}</a>
     <span>{like_count}</span>
@@ -255,7 +255,7 @@ Twigテンプレートでも同じオプションを指定できます。
 期間指定なし、または `period=all` は現在有効ないいね数を集計します。期間指定時は履歴ログをもとに、期間内の `like` を `+1`、`unlike` を `-1` とした純増いいね数でランキングします。
 
 出力できる主な変数は `rank`、`entry_id`、`blog_id`、`entry_title`、`entry_url`、`like_count` です。
-記事に標準メイン画像が設定されている場合は、`entry_image_path`、`entry_image_thumbnail`、`entry_image_alt`、`entry_image_width`、`entry_image_height`、`entry_image_ratio` も利用できます。画像がない場合、画像系の値は空になります。
+記事に標準メイン画像が設定されている場合は、`entry_image_thumbnail`、`entry_image_path`、`entry_image_alt`、`entry_image_width`、`entry_image_height`、`entry_image_ratio` も利用できます。a-blog cms側のメイン画像設定（通常は `entry_main_image`）に従い、フィールド画像がない場合はユニットのメイン画像を参照します。サムネイル表示には `entry_image_thumbnail` の利用を推奨します。画像がない場合、画像系の値は空になります。
 
 ## いいね通知
 
