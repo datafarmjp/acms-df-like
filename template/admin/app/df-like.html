@@ -6,9 +6,9 @@
   </div>
 </header>
 
-<link rel="stylesheet" href="/extension/plugins/DF_Like/assets/df-like-admin.css?v=0.7.37">
+<link rel="stylesheet" href="/extension/plugins/DF_Like/assets/df-like-admin.css?v=0.7.38">
 
-<section class="df-like-admin js-df-like-admin" data-current-version="0.7.37">
+<section class="df-like-admin js-df-like-admin" data-current-version="0.7.38">
   <div class="df-like-admin-sticky-header">
     <div>
       <h1 class="acms-admin-admin-title"><!--T-->DFいいね解析<!--/T--></h1>
@@ -309,7 +309,37 @@
             <h2 class="df-like-admin-subtitle"><!--T-->通常テンプレート<!--/T--></h2>
             <p class="acms-admin-text-muted"><!--T-->いいね数順の記事リンク一覧だけを表示したい場合は、公開ページに次のモジュールを設置できます。<!--/T--></p>
             <div class="df-like-admin-manual__code">
-              <code class="js-df-like-ranking-tag">&lt;!-- BEGIN_MODULE DFLikeRanking --&gt;&lt;!-- DFLikeRanking:limit=5 --&gt;&lt;!-- BEGIN ranking:loop --&gt;&lt;p&gt;&lt;!-- BEGIN_IF [&#123;entry_image_thumbnail&#125;/nem] --&gt;&lt;img src=&quot;&#123;entry_image_thumbnail&#125;&quot; alt=&quot;&#123;entry_image_alt&#125;&quot; loading=&quot;lazy&quot;&gt;&lt;!-- END_IF --&gt;&lt;a href=&quot;&#123;entry_url&#125;&quot;&gt;&#123;entry_title&#125;&lt;/a&gt; &#123;like_count&#125;&lt;/p&gt;&lt;!-- END ranking:loop --&gt;&lt;!-- END_MODULE DFLikeRanking --&gt;</code>
+              <code class="js-df-like-ranking-tag">&lt;!-- BEGIN_MODULE DFLikeRanking --&gt;
+  &lt;!-- DFLikeRanking:limit=5 --&gt;
+  &lt;section&gt;
+    &lt;h2 class=&quot;sub-heading&quot;&gt;人気記事&lt;/h2&gt;
+    &lt;!-- BEGIN notFound --&gt;
+    &lt;p&gt;いいねされた記事はまだありません。&lt;/p&gt;
+    &lt;!-- END notFound --&gt;
+    &lt;ul class=&quot;entry-list is-thumbnail&quot;&gt;
+      &lt;!-- BEGIN ranking:loop --&gt;
+      &lt;li&gt;
+        &lt;a href=&quot;&#123;entry_url&#125;&quot;&gt;
+          &lt;div class=&quot;entry-list-thumbnail-img-outer&quot;&gt;
+            &lt;!-- BEGIN_IF [&#123;entry_image_thumbnail&#125;/nem] --&gt;
+            &lt;img class=&quot;js-focused-image&quot;
+              data-focus-x=&quot;&#123;entry_image_focal_x&#125;&quot;
+              data-focus-y=&quot;&#123;entry_image_focal_y&#125;&quot;
+              src=&quot;&#123;entry_image_thumbnail&#125;&quot; alt=&quot;&#123;entry_image_alt&#125;&quot; loading=&quot;lazy&quot;&gt;
+            &lt;!-- ELSE --&gt;
+            &lt;img class=&quot;js-focused-image&quot; src=&quot;/images/noimage.png&quot; alt=&quot;&quot; loading=&quot;lazy&quot;&gt;
+            &lt;!-- END_IF --&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;entry-list-thumbnail-info&quot;&gt;
+            &lt;span class=&quot;entry-list-date&quot;&gt;&#123;like_count&#125;いいね&lt;/span&gt;
+            &lt;span class=&quot;entry-list-title&quot;&gt;&#123;entry_title&#125;&lt;/span&gt;
+          &lt;/div&gt;
+        &lt;/a&gt;
+      &lt;/li&gt;
+      &lt;!-- END ranking:loop --&gt;
+    &lt;/ul&gt;
+  &lt;/section&gt;
+&lt;!-- END_MODULE DFLikeRanking --&gt;</code>
               <button type="button" class="acms-admin-btn-admin js-df-like-copy-ranking"><!--T-->コピー<!--/T--></button>
             </div>
             <p class="df-like-admin-local-status js-df-like-ranking-copy-status" role="status" aria-live="polite"></p>
@@ -319,14 +349,35 @@
             <p class="acms-admin-text-muted"><!--T-->Twigでは V2_DFLikeRanking からランキング配列を取得できます。<!--/T--></p>
             <div class="df-like-admin-manual__code">
               <code class="js-df-like-ranking-v2-tag">&#123;% set ranking = module('V2_DFLikeRanking', null, &#123; limit: 5 &#125;) %&#125;
-&#123;% for item in ranking.items %&#125;
-  &lt;p&gt;&lt;span&gt;&#123;&#123; item.rank &#125;&#125;&lt;/span&gt; &lt;a href=&quot;&#123;&#123; item.entry_url &#125;&#125;&quot;&gt;&#123;&#123; item.entry_title &#125;&#125;&lt;/a&gt; &lt;span&gt;&#123;&#123; item.like_count &#125;&#125;&lt;/span&gt;&lt;/p&gt;
-  &#123;% if item.entry_image_thumbnail %&#125;
-    &lt;img src=&quot;&#123;&#123; item.entry_image_thumbnail &#125;&#125;&quot; alt=&quot;&#123;&#123; item.entry_image_alt &#125;&#125;&quot; loading=&quot;lazy&quot;&gt;
-  &#123;% endif %&#125;
-&#123;% else %&#125;
+
+&lt;section&gt;
+  &lt;h2 class=&quot;sub-heading&quot;&gt;人気記事&lt;/h2&gt;
+  &#123;% if ranking.notFound %&#125;
   &lt;p&gt;いいねされた記事はまだありません。&lt;/p&gt;
-&#123;% endfor %&#125;</code>
+  &#123;% endif %&#125;
+  &lt;ul class=&quot;entry-list is-thumbnail&quot;&gt;
+    &#123;% for item in ranking.items %&#125;
+      &lt;li&gt;
+        &lt;a href=&quot;&#123;&#123; item.entry_url &#125;&#125;&quot;&gt;
+          &lt;div class=&quot;entry-list-thumbnail-img-outer&quot;&gt;
+            &#123;% if item.entry_image_thumbnail %&#125;
+              &lt;img class=&quot;js-focused-image&quot;
+                data-focus-x=&quot;&#123;&#123; item.entry_image_focal_x &#125;&#125;&quot;
+                data-focus-y=&quot;&#123;&#123; item.entry_image_focal_y &#125;&#125;&quot;
+                src=&quot;&#123;&#123; item.entry_image_thumbnail &#125;&#125;&quot; alt=&quot;&#123;&#123; item.entry_image_alt &#125;&#125;&quot; loading=&quot;lazy&quot;&gt;
+            &#123;% else %&#125;
+              &lt;img class=&quot;js-focused-image&quot; src=&quot;/images/noimage.png&quot; alt=&quot;&quot; loading=&quot;lazy&quot;&gt;
+            &#123;% endif %&#125;
+          &lt;/div&gt;
+          &lt;div class=&quot;entry-list-thumbnail-info&quot;&gt;
+            &lt;span class=&quot;entry-list-date&quot;&gt;&#123;&#123; item.like_count &#125;&#125;いいね&lt;/span&gt;
+            &lt;span class=&quot;entry-list-title&quot;&gt;&#123;&#123; item.entry_title &#125;&#125;&lt;/span&gt;
+          &lt;/div&gt;
+        &lt;/a&gt;
+      &lt;/li&gt;
+    &#123;% endfor %&#125;
+  &lt;/ul&gt;
+&lt;/section&gt;</code>
               <button type="button" class="acms-admin-btn-admin js-df-like-copy-ranking-v2"><!--T-->コピー<!--/T--></button>
             </div>
             <p class="df-like-admin-local-status js-df-like-ranking-v2-copy-status" role="status" aria-live="polite"></p>
@@ -354,6 +405,10 @@
               <div>
                 <dt><code>entry_image_thumbnail</code></dt>
                 <dd><!--T-->記事の標準メイン画像のサムネイルURLです。a-blog cms側のメイン画像設定（通常は <code>entry_main_image</code>）に従います。画像がない場合は空になります。<!--/T--></dd>
+              </div>
+              <div>
+                <dt><code>entry_image_focal_x</code> / <code>entry_image_focal_y</code></dt>
+                <dd><!--T-->標準メイン画像の焦点位置です。テーマ側の <code>js-focused-image</code> と組み合わせて利用できます。<!--/T--></dd>
               </div>
             </dl>
             <div class="df-like-admin-snippet-modal__examples">
@@ -443,8 +498,8 @@
   </section>
 </section>
 
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-api.js?v=0.7.37"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-render.js?v=0.7.37"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-settings.js?v=0.7.37"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin.js?v=0.7.37"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-api.js?v=0.7.38"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-render.js?v=0.7.38"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-settings.js?v=0.7.38"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin.js?v=0.7.38"></script>
 <!-- END_IF -->

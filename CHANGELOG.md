@@ -2,6 +2,16 @@
 
 DF_Like の主な変更履歴です。
 
+<a id="v0-7-38"></a>
+## [0.7.38] - 2026-05-12
+
+### Changed
+
+- `DFLikeRanking` のタグ本文なし標準出力を、テーマの `entry-list is-thumbnail` に乗せやすいサムネイルリスト形式へ変更しました。
+- READMEと管理画面の人気ランキング設置例を、`Entry_Summary` に近いサムネイルリスト形式へ変更しました。
+- `V2_DFLikeRanking` の出力に、`js-focused-image` で利用できる `entry_image_focal_x` / `entry_image_focal_y` を追加しました。
+- プラグイン本体バージョンと管理画面/フロントアセットのクエリを `0.7.38` に更新しました。
+
 <a id="v0-7-37"></a>
 ## [0.7.37] - 2026-05-10
 

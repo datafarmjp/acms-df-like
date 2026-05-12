@@ -143,6 +143,8 @@ class LikeAnalyticsService
                 'entry_image_width' => (int)($row['entry_image_width'] ?? 0),
                 'entry_image_height' => (int)($row['entry_image_height'] ?? 0),
                 'entry_image_ratio' => (string)($row['entry_image_ratio'] ?? ''),
+                'entry_image_focal_x' => (string)($row['entry_image_focal_x'] ?? ''),
+                'entry_image_focal_y' => (string)($row['entry_image_focal_y'] ?? ''),
             ];
         }, $rows, array_keys($rows));
     }
@@ -254,6 +256,8 @@ class LikeAnalyticsService
                 'entry_image_width' => 0,
                 'entry_image_height' => 0,
                 'entry_image_ratio' => '',
+                'entry_image_focal_x' => '',
+                'entry_image_focal_y' => '',
             ];
         }
         $path = self::publicImageUrl((string)($image['path'] ?? ''), (string)($image['type'] ?? ''));
@@ -267,6 +271,8 @@ class LikeAnalyticsService
             'entry_image_width' => (int)($image['width'] ?? 0),
             'entry_image_height' => (int)($image['height'] ?? 0),
             'entry_image_ratio' => (string)($image['ratio'] ?? ''),
+            'entry_image_focal_x' => (string)($image['focalX'] ?? ''),
+            'entry_image_focal_y' => (string)($image['focalY'] ?? ''),
         ];
     }
 

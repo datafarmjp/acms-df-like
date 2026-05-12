@@ -192,19 +192,34 @@ Twigテンプレートでは、`module('V2_Entry_Body')` の戻り値に追加�
 ```html
 <!-- BEGIN_MODULE DFLikeRanking -->
   <!-- DFLikeRanking:limit=5 -->
+  <section>
+    <h2 class="sub-heading">人気記事</h2>
+    <!-- BEGIN notFound -->
+    <p>いいねされた記事はまだありません。</p>
+    <!-- END notFound -->
+    <ul class="entry-list is-thumbnail">
   <!-- BEGIN ranking:loop -->
-  <p>
-    <span>{rank}</span>
-    <!-- BEGIN_IF [{entry_image_thumbnail}/nem] -->
-    <img src="{entry_image_thumbnail}" alt="{entry_image_alt}" loading="lazy">
-    <!-- END_IF -->
-    <a href="{entry_url}">{entry_title}</a>
-    <span>{like_count}</span>
-  </p>
+      <li>
+        <a href="{entry_url}">
+          <div class="entry-list-thumbnail-img-outer">
+            <!-- BEGIN_IF [{entry_image_thumbnail}/nem] -->
+            <img class="js-focused-image"
+              data-focus-x="{entry_image_focal_x}"
+              data-focus-y="{entry_image_focal_y}"
+              src="{entry_image_thumbnail}" alt="{entry_image_alt}" loading="lazy">
+            <!-- ELSE -->
+            <img class="js-focused-image" src="/images/noimage.png" alt="" loading="lazy">
+            <!-- END_IF -->
+          </div>
+          <div class="entry-list-thumbnail-info">
+            <span class="entry-list-date">{like_count}いいね</span>
+            <span class="entry-list-title">{entry_title}</span>
+          </div>
+        </a>
+      </li>
   <!-- END ranking:loop -->
-  <!-- BEGIN notFound -->
-  <p>いいねされた記事はまだありません。</p>
-  <!-- END notFound -->
+    </ul>
+  </section>
 <!-- END_MODULE DFLikeRanking -->
 ```
 
@@ -215,18 +230,34 @@ Twigテンプレートでは `V2_DFLikeRanking` を使い、ランキング配�
 ```twig
 {% set ranking = module('V2_DFLikeRanking', null, { limit: 5 }) %}
 
-{% for item in ranking.items %}
-  <p>
-    <span>{{ item.rank }}</span>
-    {% if item.entry_image_thumbnail %}
-      <img src="{{ item.entry_image_thumbnail }}" alt="{{ item.entry_image_alt }}" loading="lazy">
-    {% endif %}
-    <a href="{{ item.entry_url }}">{{ item.entry_title }}</a>
-    <span>{{ item.like_count }}</span>
-  </p>
-{% else %}
+<section>
+  <h2 class="sub-heading">人気記事</h2>
+  {% if ranking.notFound %}
   <p>いいねされた記事はまだありません。</p>
-{% endfor %}
+  {% endif %}
+  <ul class="entry-list is-thumbnail">
+    {% for item in ranking.items %}
+      <li>
+        <a href="{{ item.entry_url }}">
+          <div class="entry-list-thumbnail-img-outer">
+            {% if item.entry_image_thumbnail %}
+              <img class="js-focused-image"
+                data-focus-x="{{ item.entry_image_focal_x }}"
+                data-focus-y="{{ item.entry_image_focal_y }}"
+                src="{{ item.entry_image_thumbnail }}" alt="{{ item.entry_image_alt }}" loading="lazy">
+            {% else %}
+              <img class="js-focused-image" src="/images/noimage.png" alt="" loading="lazy">
+            {% endif %}
+          </div>
+          <div class="entry-list-thumbnail-info">
+            <span class="entry-list-date">{{ item.like_count }}いいね</span>
+            <span class="entry-list-title">{{ item.entry_title }}</span>
+          </div>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+</section>
 ```
 
 期間を指定したい場合は、`period` または `start` / `end` を追加します。
@@ -255,7 +286,7 @@ Twigテンプレートでも同じオプションを指定できます。
 期間指定なし、または `period=all` は現在有効ないいね数を集計します。期間指定時は履歴ログをもとに、期間内の `like` を `+1`、`unlike` を `-1` とした純増いいね数でランキングします。
 
 出力できる主な変数は `rank`、`entry_id`、`blog_id`、`entry_title`、`entry_url`、`like_count` です。
-記事に標準メイン画像が設定されている場合は、`entry_image_thumbnail`、`entry_image_path`、`entry_image_alt`、`entry_image_width`、`entry_image_height`、`entry_image_ratio` も利用できます。a-blog cms側のメイン画像設定（通常は `entry_main_image`）に従い、フィールド画像がない場合はユニットのメイン画像を参照します。サムネイル表示には `entry_image_thumbnail` の利用を推奨します。画像がない場合、画像系の値は空になります。
+記事に標準メイン画像が設定されている場合は、`entry_image_thumbnail`、`entry_image_path`、`entry_image_alt`、`entry_image_width`、`entry_image_height`、`entry_image_ratio`、`entry_image_focal_x`、`entry_image_focal_y` も利用できます。a-blog cms側のメイン画像設定（通常は `entry_main_image`）に従い、フィールド画像がない場合はユニットのメイン画像を参照します。サムネイル表示には `entry_image_thumbnail` の利用を推奨します。画像がない場合、画像系の値は空になります。
 
 ## いいね通知
 

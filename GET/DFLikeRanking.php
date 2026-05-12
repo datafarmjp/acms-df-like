@@ -79,6 +79,9 @@ class DFLikeRanking extends ACMS_GET
         $blogId = defined('BID') ? (int)BID : 0;
         $template = $this->template();
         $this->templateArgs = $this->extractTemplateArgs($template);
+        if (trim($template) === '') {
+            $template = $this->defaultTemplate();
+        }
         $rows = LikeRankingQuery::rows($blogId, $this->arg('limit'), $this->arg('period'), $this->arg('start'), $this->arg('end'));
         $Tpl = new Template($template, new ACMS_Corrector());
 
@@ -208,9 +211,28 @@ class DFLikeRanking extends ACMS_GET
             return $tpl;
         }
 
-        return '<!-- BEGIN ranking:loop -->'
-            . '<p><span>{rank}</span> <a href="{entry_url}">{entry_title}</a> <span>{like_count}</span></p>'
+        return $this->defaultTemplate();
+    }
+
+    private function defaultTemplate(): string
+    {
+        return '<section>'
+            . '<h2 class="sub-heading">人気記事</h2>'
+            . '<!-- BEGIN notFound --><p>いいねされた記事はまだありません。</p><!-- END notFound -->'
+            . '<ul class="entry-list is-thumbnail">'
+            . '<!-- BEGIN ranking:loop -->'
+            . '<li><a href="{entry_url}"><div class="entry-list-thumbnail-img-outer">'
+            . '<!-- BEGIN_IF [{entry_image_thumbnail}/nem] -->'
+            . '<img class="js-focused-image" data-focus-x="{entry_image_focal_x}" data-focus-y="{entry_image_focal_y}" src="{entry_image_thumbnail}" alt="{entry_image_alt}" loading="lazy">'
+            . '<!-- ELSE -->'
+            . '<img class="js-focused-image" src="/images/noimage.png" alt="" loading="lazy">'
+            . '<!-- END_IF -->'
+            . '</div><div class="entry-list-thumbnail-info">'
+            . '<span class="entry-list-date">{like_count}いいね</span>'
+            . '<span class="entry-list-title">{entry_title}</span>'
+            . '</div></a></li>'
             . '<!-- END ranking:loop -->'
-            . '<!-- BEGIN notFound --><p>いいねされた記事はまだありません。</p><!-- END notFound -->';
+            . '</ul>'
+            . '</section>';
     }
 }
