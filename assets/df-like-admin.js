@@ -1,6 +1,16 @@
 (function() {
   'use strict';
 
+  var RELEASE_API_URL = 'https://api.github.com/repos/datafarmjp/acms-df-like/releases/latest';
+  var RELEASE_LATEST_URL = 'https://github.com/datafarmjp/acms-df-like/releases/latest';
+  var RELEASE_CACHE_KEY = 'df_like_latest_release';
+  var UPDATE_DISMISSED_KEY = 'df_like_update_dismissed';
+  var UPDATE_DOT_LABEL = '新しいバージョンがあります';
+  var SIDEBAR_SELECTOR = '.acms-admin-sidebar-main';
+  var MENU_LINK_SELECTOR = 'a[href*="admin/app_df-like"]';
+  var MENU_DOT_SELECTOR = '.df-like-admin-menu-update-dot';
+  var latestReleasePromise = null;
+
   document.addEventListener('DOMContentLoaded', function() {
     var root = document.querySelector('.js-df-like-admin');
     if (!root) {
@@ -50,6 +60,8 @@
     Admin.setupNotifyForms(root);
     Admin.setupPreview(root);
     setupUpdateNotice(root);
+    cleanupMenuUpdateDots();
+    setupMenuUpdateDot(root);
     root.querySelectorAll('.js-df-like-preset').forEach(function(button) {
       button.addEventListener('click', function() {
         applyPreset(button.getAttribute('data-preset'), start, end);
@@ -464,14 +476,14 @@
         var tag = notice.getAttribute('data-release-tag') || '';
         if (tag && window.localStorage) {
           try {
-            window.localStorage.setItem('df_like_update_dismissed', tag);
+            window.localStorage.setItem(UPDATE_DISMISSED_KEY, tag);
           } catch (error) {
           }
         }
       });
     }
     latestRelease().then(function(release) {
-      if (!release || !release.tag_name || release.prerelease || release.draft) {
+      if (!isUsableRelease(release)) {
         return;
       }
       var latestVersion = normalizeVersion(release.tag_name);
@@ -481,7 +493,7 @@
       if (isDismissed(release.tag_name)) {
         return;
       }
-      var url = release.html_url || 'https://github.com/datafarmjp/acms-df-like/releases/latest';
+      var url = release.html_url || RELEASE_LATEST_URL;
       var changelogUrl = changelogUrlForTag(release.tag_name);
       var asset = zipAsset(release.assets || [], latestVersion);
       if (asset && asset.browser_download_url) {
@@ -510,6 +522,60 @@
     });
   }
 
+  function setupMenuUpdateDot(root) {
+    var currentVersion = root.getAttribute('data-current-version') || '';
+    if (!currentVersion || !window.fetch) {
+      return;
+    }
+    latestRelease().then(function(release) {
+      if (!isUsableRelease(release)) {
+        return;
+      }
+      if (!isNewerVersion(normalizeVersion(release.tag_name), currentVersion)) {
+        return;
+      }
+      addMenuUpdateDot();
+    }).catch(function() {
+    });
+  }
+
+  function addMenuUpdateDot() {
+    var sidebar = document.querySelector(SIDEBAR_SELECTOR);
+    if (!sidebar) {
+      return;
+    }
+    var link = sidebar.querySelector(MENU_LINK_SELECTOR);
+    if (!link) {
+      return;
+    }
+    if (link.querySelector(MENU_DOT_SELECTOR)) {
+      return;
+    }
+    var dot = document.createElement('span');
+    dot.className = MENU_DOT_SELECTOR.slice(1);
+    dot.setAttribute('role', 'img');
+    dot.setAttribute('aria-label', UPDATE_DOT_LABEL);
+    dot.title = UPDATE_DOT_LABEL;
+    link.appendChild(dot);
+  }
+
+  function cleanupMenuUpdateDots() {
+    var sidebar = document.querySelector(SIDEBAR_SELECTOR);
+    var selector = [
+      MENU_DOT_SELECTOR,
+      '[title="' + UPDATE_DOT_LABEL + '"]',
+      '[aria-label="' + UPDATE_DOT_LABEL + '"]'
+    ].join(',');
+    document.querySelectorAll(selector).forEach(function(dot) {
+      if (sidebar && sidebar.contains(dot)) {
+        return;
+      }
+      if (dot.parentNode) {
+        dot.parentNode.removeChild(dot);
+      }
+    });
+  }
+
   function changelogUrlForTag(tag) {
     var normalizedTag = String(tag || '').trim();
     if (!/^v\d+\.\d+\.\d+$/.test(normalizedTag)) {
@@ -518,19 +584,25 @@
     return 'https://github.com/datafarmjp/acms-df-like/blob/' + normalizedTag + '/CHANGELOG.md#' + normalizedTag.replace(/\./g, '-');
   }
 
+  function isUsableRelease(release) {
+    return !!(release && release.tag_name && !release.prerelease && !release.draft);
+  }
+
   function latestRelease() {
-    var cacheKey = 'df_like_latest_release';
+    if (latestReleasePromise) {
+      return latestReleasePromise;
+    }
     var cachedRelease = null;
     if (window.localStorage) {
       try {
-        var cached = JSON.parse(window.localStorage.getItem(cacheKey) || 'null');
+        var cached = JSON.parse(window.localStorage.getItem(RELEASE_CACHE_KEY) || 'null');
         if (cached && cached.release) {
           cachedRelease = cached.release;
         }
       } catch (error) {
       }
     }
-    return fetch('https://api.github.com/repos/datafarmjp/acms-df-like/releases/latest', {
+    latestReleasePromise = fetch(RELEASE_API_URL, {
       headers: {'Accept': 'application/vnd.github+json'}
     }).then(function(response) {
       if (!response.ok) {
@@ -540,7 +612,7 @@
     }).then(function(release) {
       if (window.localStorage) {
         try {
-          window.localStorage.setItem(cacheKey, JSON.stringify({
+          window.localStorage.setItem(RELEASE_CACHE_KEY, JSON.stringify({
             checked_at: Date.now(),
             release: release
           }));
@@ -554,6 +626,7 @@
       }
       throw error;
     });
+    return latestReleasePromise;
   }
 
   function zipAsset(assets, version) {
@@ -576,7 +649,7 @@
       return false;
     }
     try {
-      return window.localStorage.getItem('df_like_update_dismissed') === tag;
+      return window.localStorage.getItem(UPDATE_DISMISSED_KEY) === tag;
     } catch (error) {
       return false;
     }
