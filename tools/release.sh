@@ -85,6 +85,15 @@ fi
 
 gh auth status >/dev/null
 
+git fetch --tags origin >/dev/null 2>&1 || true
+
+PREVIOUS_TAG="$(
+  git tag --sort=-v:refname \
+    | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' \
+    | awk -v current="$TAG" 'current == "" || $0 != current { print; exit }'
+)"
+PREVIOUS_VERSION="${PREVIOUS_TAG#v}"
+
 rm -f "$ZIP_PATH"
 (
   cd "$PLUGIN_PARENT"
@@ -100,6 +109,7 @@ rm -f "$ZIP_PATH"
   --product "$PRODUCT" \
   --display-name "$DISPLAY_NAME" \
   --version "$VERSION" \
+  --previous-version "$PREVIOUS_VERSION" \
   --repo "$REPO" \
   --zip-name "$(basename "$ZIP_PATH")" \
   --output "$JSON_PATH"
@@ -112,10 +122,18 @@ if (!is_array($json)) {
 }
 $zip = (string)($json["download_url"] ?? "");
 $changelog = (string)($json["changelog_url"] ?? "");
+$previousTag = (string)($json["previous_tag"] ?? "");
 $body = trim((string)($json["body_markdown"] ?? ""));
+$bodySincePrevious = trim((string)($json["body_markdown_since_previous_release"] ?? ""));
 $zipName = basename($zip);
 echo "## 変更内容\n\n";
-echo ($body !== "" ? $body : "- 変更内容はCHANGELOG.mdを確認してください。") . "\n\n";
+if ($previousTag !== "" && $bodySincePrevious !== "") {
+    $tag = (string)($json["tag"] ?? "");
+    echo "{$tag} は、前回公開版 {$previousTag} からの更新を含むリリースです。\n\n";
+    echo $bodySincePrevious . "\n\n";
+} else {
+    echo ($body !== "" ? $body : "- 変更内容はCHANGELOG.mdを確認してください。") . "\n\n";
+}
 if ($changelog !== "") {
     echo "[CHANGELOG.md の該当箇所を開く]({$changelog})\n\n";
 }
@@ -128,8 +146,6 @@ echo "```text\nextension/plugins/DF_Like/\n```\n\n";
 echo "## 注意\n\n";
 echo "このプラグインは a-blog cms 本体を含みません。利用には別途 a-blog cms の適切なライセンスが必要です。\n";
 ' "$JSON_PATH" > "$NOTES_PATH"
-
-git fetch --tags origin >/dev/null 2>&1 || true
 
 if git rev-parse "$TAG" >/dev/null 2>&1; then
   echo "Tag $TAG already exists locally."

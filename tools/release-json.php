@@ -5,6 +5,7 @@ $options = getopt('', [
     'product:',
     'display-name:',
     'version:',
+    'previous-version:',
     'repo:',
     'zip-name:',
     'output:',
@@ -27,24 +28,77 @@ if (!is_file($changelog)) {
 }
 
 $lines = file($changelog, FILE_IGNORE_NEW_LINES);
-$inside = false;
-$date = '';
-$body = [];
-foreach ($lines as $line) {
-    if (preg_match('/^##\s+\[?' . preg_quote($version, '/') . '\]?(?:\s+-\s+(\d{4}-\d{2}-\d{2}))?/', $line, $matches)) {
-        $inside = true;
-        $date = $matches[1] ?? '';
-        continue;
+
+function findChangelogSection(array $lines, string $version): array
+{
+    $inside = false;
+    $date = '';
+    $body = [];
+    foreach ($lines as $line) {
+        if (preg_match('/^##\s+\[?' . preg_quote($version, '/') . '\]?(?:\s+-\s+(\d{4}-\d{2}-\d{2}))?/', $line, $matches)) {
+            $inside = true;
+            $date = $matches[1] ?? '';
+            continue;
+        }
+        if ($inside && (preg_match('/^<a\s+id="/', $line) || preg_match('/^##\s+/', $line))) {
+            break;
+        }
+        if ($inside) {
+            $body[] = rtrim($line);
+        }
     }
-    if ($inside && preg_match('/^##\s+/', $line)) {
-        break;
-    }
-    if ($inside) {
-        $body[] = rtrim($line);
-    }
+
+    return [$date, trim(implode("\n", $body)), $body];
 }
 
-$bodyMarkdown = trim(implode("\n", $body));
+function findChangelogSectionsBetween(array $lines, string $version, string $previousVersion): string
+{
+    $inside = false;
+    $sections = [];
+    $current = [];
+    foreach ($lines as $line) {
+        if (preg_match('/^##\s+\[?([0-9]+\.[0-9]+\.[0-9]+)\]?(?:\s+-\s+(\d{4}-\d{2}-\d{2}))?/', $line, $matches)) {
+            $foundVersion = $matches[1];
+            if ($foundVersion === $previousVersion) {
+                if ($current) {
+                    $sections[] = trim(implode("\n", $current));
+                    $current = [];
+                }
+                break;
+            }
+            if ($foundVersion === $version) {
+                $inside = true;
+            }
+            if ($inside) {
+                if ($current) {
+                    $sections[] = trim(implode("\n", $current));
+                    $current = [];
+                }
+                $date = isset($matches[2]) ? ' - ' . $matches[2] : '';
+                $current[] = '### ' . $foundVersion . $date;
+            }
+            continue;
+        }
+        if (!$inside) {
+            continue;
+        }
+        if (preg_match('/^<a\s+id="/', $line)) {
+            continue;
+        }
+        if (preg_match('/^###\s+/', $line)) {
+            $line = '#' . $line;
+        }
+        $current[] = rtrim($line);
+    }
+    if ($current) {
+        $sections[] = trim(implode("\n", $current));
+    }
+
+    return trim(implode("\n\n", array_filter($sections)));
+}
+
+[$date, $bodyMarkdown, $body] = findChangelogSection($lines, $version);
+
 if ($bodyMarkdown === '') {
     fwrite(STDERR, "CHANGELOG.md does not contain notes for {$version}.\n");
     exit(1);
@@ -60,11 +114,18 @@ foreach ($body as $line) {
 $repo = trim((string)$options['repo']);
 $zipName = trim((string)$options['zip-name']);
 $anchor = 'v' . str_replace('.', '-', $version);
+$previousVersion = trim((string)($options['previous-version'] ?? ''));
+$bodySincePrevious = '';
+if ($previousVersion !== '' && $previousVersion !== $version) {
+    $bodySincePrevious = findChangelogSectionsBetween($lines, $version, $previousVersion);
+}
 $payload = [
     'product' => (string)$options['product'],
     'display_name' => (string)$options['display-name'],
     'version' => $version,
     'tag' => $tag,
+    'previous_version' => $previousVersion,
+    'previous_tag' => $previousVersion !== '' ? 'v' . $previousVersion : '',
     'date' => $date,
     'title' => (string)$options['display-name'] . ' ' . $tag,
     'github_release_url' => "https://github.com/{$repo}/releases/tag/{$tag}",
@@ -72,6 +133,7 @@ $payload = [
     'download_url' => "https://github.com/{$repo}/releases/download/{$tag}/{$zipName}",
     'changes' => $changes,
     'body_markdown' => $bodyMarkdown,
+    'body_markdown_since_previous_release' => $bodySincePrevious,
 ];
 
 $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
