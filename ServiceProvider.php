@@ -11,7 +11,7 @@ use Acms\Services\Common\InjectTemplate;
 
 class ServiceProvider extends ACMS_App
 {
-    const VERSION = '0.7.40';
+    const VERSION = '0.7.47';
 
     private static $postWrappers = [
         'DFLikeToggle.php',
@@ -135,6 +135,10 @@ class ServiceProvider extends ACMS_App
         InjectTemplate::singleton()->add(
             'admin-topicpath',
             PLUGIN_DIR . 'DF_Like/template/admin/topicpath/df-like.html'
+        );
+        InjectTemplate::singleton()->add(
+            'admin-entry-field',
+            PLUGIN_DIR . 'DF_Like/template/admin/entry/field.html'
         );
     }
 

@@ -397,6 +397,26 @@ class LikeRepository
         return $prefix . $name;
     }
 
+    public static function entryFieldValue(int $entryId, string $fieldKey): string
+    {
+        if ($entryId <= 0 || $fieldKey === '') {
+            return '';
+        }
+        $value = \DB::query([
+            'sql' => 'SELECT field_value FROM `' . self::table('field') . '`
+                WHERE field_eid = :entry_id
+                AND field_key = :field_key
+                AND field_value <> \'\'
+                ORDER BY field_sort ASC
+                LIMIT 1',
+            'params' => [
+                'entry_id' => $entryId,
+                'field_key' => $fieldKey,
+            ],
+        ], 'one');
+        return is_scalar($value) ? trim((string)$value) : '';
+    }
+
     private static function rowCount(): int
     {
         try {

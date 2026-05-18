@@ -1,0 +1,48 @@
+<div class="acms-admin-field-container df-like-entry-field js-df-like-entry-thanks-field">
+  <h3 class="acms-admin-admin-title2"><!--T-->DFいいね<!--/T--></h3>
+  <table class="entryFormTable acms-admin-table-entry">
+    <tr>
+      <th>
+        <label for="input-textarea-df_like_thanks_message"><!--T-->いいね後メッセージ<!--/T--></label>
+      </th>
+      <td>
+        <textarea
+          name="df_like_thanks_message"
+          id="input-textarea-df_like_thanks_message"
+          rows="3"
+          maxlength="300"
+          class="acms-admin-form-width-full"
+          placeholder="ありがとうございます！"
+        >{df_like_thanks_message}</textarea>
+        <input type="hidden" name="field[]" value="df_like_thanks_message" />
+        <input type="hidden" name="df_like_thanks_message:search" value="0" />
+        <p class="acms-admin-text-muted">
+          <!--T-->このエントリーだけで表示するお礼メッセージです。空欄の場合はDFいいね管理画面の共通メッセージを使います。HTMLは使わず、テキストとして表示します。<!--/T-->
+        </p>
+      </td>
+    </tr>
+  </table>
+</div>
+<script>
+(function() {
+  function removeIfThemeFieldExists() {
+    var wrapper = document.querySelector('.js-df-like-entry-thanks-field');
+    if (!wrapper) {
+      return;
+    }
+    var fields = Array.prototype.slice.call(document.querySelectorAll('[name="df_like_thanks_message"]'));
+    var hasThemeField = fields.some(function(field) {
+      return !wrapper.contains(field);
+    });
+    if (hasThemeField && wrapper.parentElement) {
+      wrapper.parentElement.removeChild(wrapper);
+    }
+  }
+  removeIfThemeFieldExists();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', removeIfThemeFieldExists);
+  } else {
+    window.setTimeout(removeIfThemeFieldExists, 0);
+  }
+})();
+</script>

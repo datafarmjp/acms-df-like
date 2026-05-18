@@ -172,7 +172,9 @@
       root.querySelector('.js-df-like-radius-range'),
       root.querySelector('[name="df_like_border_radius"]'),
       root.querySelector('[name="df_like_label_like"]'),
-      root.querySelector('[name="df_like_label_liked"]')
+      root.querySelector('[name="df_like_label_liked"]'),
+      root.querySelector('[name="df_like_thanks_message"]'),
+      root.querySelector('[name="df_like_thanks_accent"]')
     ].filter(function(control) {
       return !!control;
     });
@@ -185,6 +187,7 @@
       control.addEventListener('input', update);
       control.addEventListener('change', update);
     });
+    Admin.setupPreviewThanks(preview);
     update();
   };
 
@@ -197,6 +200,8 @@
     var radius = Admin.clampNumber(Admin.formValue(root, 'df_like_border_radius', '18'), 0, 32, 18);
     var labelLike = Admin.formValue(root, 'df_like_label_like', '').trim() || 'いいね';
     var labelLiked = Admin.formValue(root, 'df_like_label_liked', '').trim() || 'いいね済み';
+    var thanksMessage = Admin.formValue(root, 'df_like_thanks_message', '').trim();
+    var thanksAccent = Admin.normalizePreviewThanksAccent(Admin.formValue(root, 'df_like_thanks_accent', 'none'));
     var icon = Admin.previewIcon(iconValue);
     var showCount = countDisplay !== 'hide';
     var buttons = [
@@ -222,6 +227,8 @@
       }
       item.button.style.setProperty('--df-like-preview-main-color', color);
       item.button.style.setProperty('--df-like-preview-border-radius', radius + 'px');
+      item.button.setAttribute('data-thanks-message', thanksMessage);
+      item.button.setAttribute('data-thanks-accent', thanksAccent);
       item.label.textContent = item.text;
       if (item.icon) {
         item.icon.textContent = icon;
@@ -231,6 +238,169 @@
         item.count.hidden = !showCount;
         item.count.textContent = '12';
       }
+    });
+  };
+
+  Admin.setupPreviewThanks = function(preview) {
+    var likeButton = preview.querySelector('.js-df-like-preview-like');
+    var likedButton = preview.querySelector('.js-df-like-preview-liked');
+    if (likeButton && !likeButton._dfLikePreviewThanksReady) {
+      likeButton._dfLikePreviewThanksReady = true;
+      likeButton.addEventListener('click', function() {
+        Admin.showPreviewThanksMessage(likeButton);
+      });
+    }
+    if (likedButton && !likedButton._dfLikePreviewThanksReady) {
+      likedButton._dfLikePreviewThanksReady = true;
+      likedButton.addEventListener('click', function() {
+        Admin.removePreviewThanksMessage();
+      });
+    }
+  };
+
+  Admin.showPreviewThanksMessage = function(button) {
+    var message = (button.getAttribute('data-thanks-message') || '').trim();
+    if (!message) {
+      Admin.removePreviewThanksMessage();
+      return;
+    }
+    Admin.removePreviewThanksMessage();
+
+    var accent = Admin.normalizePreviewThanksAccent(button.getAttribute('data-thanks-accent') || 'none');
+    var bubble = document.createElement('span');
+    bubble.className = 'df-like-admin-thanks-preview';
+    if (accent !== 'none') {
+      bubble.classList.add('df-like-admin-thanks-preview--has-accent');
+      bubble.classList.add('df-like-admin-thanks-preview--' + accent);
+    }
+    bubble.setAttribute('role', 'status');
+    bubble.setAttribute('aria-live', 'polite');
+
+    var text = document.createElement('span');
+    text.className = 'df-like-admin-thanks-preview__text';
+    text.textContent = message;
+    bubble.appendChild(text);
+    Admin.appendPreviewThanksAccent(bubble, accent);
+
+    document.body.appendChild(bubble);
+    Admin.positionPreviewThanksMessage(button, bubble);
+    Admin.activatePreviewThanksMessage(bubble);
+    bubble._dfLikePreviewTimer = window.setTimeout(function() {
+      Admin.hidePreviewThanksMessage(bubble);
+    }, 2400);
+  };
+
+  Admin.activatePreviewThanksMessage = function(bubble) {
+    var show = function() {
+      if (bubble.parentElement) {
+        bubble.classList.add('is-visible');
+        Admin.playPreviewThanksAccent(bubble);
+      }
+    };
+    bubble.getBoundingClientRect();
+    if (typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(function() {
+        window.requestAnimationFrame(show);
+      });
+      return;
+    }
+    window.setTimeout(show, 40);
+  };
+
+  Admin.hidePreviewThanksMessage = function(bubble) {
+    if (!bubble || !bubble.parentElement) {
+      return;
+    }
+    if (bubble._dfLikePreviewTimer) {
+      window.clearTimeout(bubble._dfLikePreviewTimer);
+      bubble._dfLikePreviewTimer = null;
+    }
+    bubble.classList.remove('is-visible');
+    bubble.classList.add('is-hiding');
+    window.setTimeout(function() {
+      if (bubble.parentElement) {
+        bubble.parentElement.removeChild(bubble);
+      }
+    }, 260);
+  };
+
+  Admin.removePreviewThanksMessage = function() {
+    Array.prototype.slice.call(document.querySelectorAll('.df-like-admin-thanks-preview')).forEach(function(bubble) {
+      if (bubble._dfLikePreviewTimer) {
+        window.clearTimeout(bubble._dfLikePreviewTimer);
+      }
+      if (bubble.parentElement) {
+        bubble.parentElement.removeChild(bubble);
+      }
+    });
+  };
+
+  Admin.positionPreviewThanksMessage = function(button, bubble) {
+    var rect = button.getBoundingClientRect();
+    var bubbleRect = bubble.getBoundingClientRect();
+    var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+    var margin = 12;
+    var halfWidth = bubbleRect.width / 2;
+    var buttonCenter = rect.left + (rect.width / 2);
+    var left = buttonCenter;
+    var minLeft = margin + halfWidth;
+    var maxLeft = viewportWidth ? viewportWidth - margin - halfWidth : left;
+    if (viewportWidth && maxLeft >= minLeft) {
+      left = Math.min(Math.max(left, minLeft), maxLeft);
+    }
+    var visualLeft = left - halfWidth;
+    var arrowLeft = Math.min(Math.max(buttonCenter - visualLeft, 14), bubbleRect.width - 14);
+    bubble.style.left = left + 'px';
+    bubble.style.top = rect.top + 'px';
+    bubble.style.setProperty('--df-like-preview-arrow-left', arrowLeft + 'px');
+  };
+
+  Admin.normalizePreviewThanksAccent = function(value) {
+    if (value === 'fireworks') {
+      return 'confetti';
+    }
+    return ['none', 'confetti', 'cracker', 'star', 'heart', 'thanks_face'].indexOf(value || '') !== -1 ? value : 'none';
+  };
+
+  Admin.appendPreviewThanksAccent = function(bubble, accent) {
+    if (accent === 'none') {
+      return;
+    }
+    var holder = document.createElement('span');
+    holder.className = 'df-like-admin-thanks-preview__accent';
+    holder.setAttribute('aria-hidden', 'true');
+    if (accent === 'confetti') {
+      Admin.appendPreviewAccentPieces(holder, ['🌱', '🌼', '🍀']);
+    } else if (accent === 'cracker') {
+      Admin.appendPreviewAccentPieces(holder, ['🎉', '✨']);
+    } else if (accent === 'star') {
+      Admin.appendPreviewAccentPieces(holder, ['⭐', '🌟', '✨']);
+    } else if (accent === 'heart') {
+      Admin.appendPreviewAccentPieces(holder, ['💖', '💕', '✨']);
+    } else if (accent === 'thanks_face') {
+      Admin.appendPreviewAccentPieces(holder, ['😊', '🙏', '✨']);
+    }
+    bubble.appendChild(holder);
+  };
+
+  Admin.appendPreviewAccentPieces = function(holder, pieces) {
+    pieces.forEach(function(piece, index) {
+      var span = document.createElement('span');
+      span.className = 'df-like-admin-thanks-preview__accent-piece df-like-admin-thanks-preview__accent-piece--' + (index + 1);
+      span.style.setProperty('--df-like-preview-accent-index', String(index));
+      span.textContent = piece;
+      holder.appendChild(span);
+    });
+  };
+
+  Admin.playPreviewThanksAccent = function(bubble) {
+    var pieces = Array.prototype.slice.call(bubble.querySelectorAll('.df-like-admin-thanks-preview__accent-piece'));
+    pieces.forEach(function(piece, index) {
+      window.setTimeout(function() {
+        if (piece.parentElement) {
+          piece.classList.add('is-active');
+        }
+      }, index * 90);
     });
   };
 

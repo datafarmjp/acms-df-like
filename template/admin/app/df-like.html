@@ -6,9 +6,9 @@
   </div>
 </header>
 
-<link rel="stylesheet" href="/extension/plugins/DF_Like/assets/df-like-admin.css?v=0.7.40">
+<link rel="stylesheet" href="/extension/plugins/DF_Like/assets/df-like-admin.css?v=0.7.47">
 
-<section class="df-like-admin js-df-like-admin" data-current-version="0.7.40">
+<section class="df-like-admin js-df-like-admin" data-current-version="0.7.47">
   <div class="df-like-admin-sticky-header">
     <div>
       <h1 class="acms-admin-admin-title"><!--T-->DFいいね解析<!--/T--></h1>
@@ -104,6 +104,29 @@
         </td>
       </tr>
       <tr>
+        <th><!--T-->いいね後メッセージ<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->いいね追加が成功した時だけ、ボタン付近に表示する短いお礼メッセージです。空欄の場合は表示しません。<!--/T-->"></i></th>
+        <td>
+          <input type="text" name="df_like_thanks_message" value="{df_like_thanks_message}" placeholder="ありがとうございます！" class="acms-admin-form-width-medium">
+          <p class="acms-admin-text-muted"><!--T-->エントリーのカスタムフィールド <code>df_like_thanks_message</code> に値がある場合は、そちらを優先して表示します。HTMLは使わず、テキストとして表示します。<!--/T--></p>
+          <input type="hidden" name="config[]" value="df_like_thanks_message">
+        </td>
+      </tr>
+      <tr>
+        <th><!--T-->吹き出しアクセント<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->いいね後メッセージの吹き出しに添える小さな装飾です。メッセージが空欄の場合は表示されません。<!--/T-->"></i></th>
+        <td>
+          <select name="df_like_thanks_accent" class="acms-admin-form-width-small">
+            <option value="none"{df_like_thanks_accent:selected#none}><!--T-->なし<!--/T--></option>
+            <option value="confetti"{df_like_thanks_accent:selected#confetti}><!--T-->花と緑<!--/T--></option>
+            <option value="cracker"{df_like_thanks_accent:selected#cracker}><!--T-->クラッカー<!--/T--></option>
+            <option value="star"{df_like_thanks_accent:selected#star}><!--T-->スター<!--/T--></option>
+            <option value="heart"{df_like_thanks_accent:selected#heart}><!--T-->ハート<!--/T--></option>
+            <option value="thanks_face"{df_like_thanks_accent:selected#thanks_face}><!--T-->感謝のフェイスマーク<!--/T--></option>
+          </select>
+          <p class="acms-admin-text-muted"><!--T-->画面全体ではなく、吹き出し内や周辺に控えめに表示します。<!--/T--></p>
+          <input type="hidden" name="config[]" value="df_like_thanks_accent">
+        </td>
+      </tr>
+      <tr>
         <th><!--T-->ボタン色<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->未いいね、ホバー、いいね済み表示の主色として使います。<!--/T-->"></i></th>
         <td>
           <input type="color" name="df_like_color" value="#cf3251" data-config-value="{df_like_color}" data-default="#cf3251" class="js-df-like-color">
@@ -145,7 +168,7 @@
 
     <section class="df-like-admin-preview js-df-like-preview" aria-label="<!--T-->いいねボタンのプレビュー<!--/T-->">
       <h3 class="df-like-admin-subtitle"><!--T-->プレビュー<!--/T--></h3>
-      <p class="acms-admin-text-muted"><!--T-->保存前の表示設定をサンプルのいいねボタンで確認できます。<!--/T--></p>
+      <p class="acms-admin-text-muted"><!--T-->保存前の表示設定をサンプルのいいねボタンで確認できます。プレビューの「いいね」ボタンをクリックすると、吹き出しも確認できます。<!--/T--></p>
       <div class="df-like-admin-preview__buttons">
         <button type="button" class="df-like-admin-preview-button js-df-like-preview-like" style="--df-like-preview-main-color: #cf3251; --df-like-preview-border-radius: 18px;" aria-pressed="false">
           <span class="df-like-admin-preview-button__icon js-df-like-preview-like-icon" aria-hidden="true"></span>
@@ -498,8 +521,8 @@
   </section>
 </section>
 
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-api.js?v=0.7.40"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-render.js?v=0.7.40"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-settings.js?v=0.7.40"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin.js?v=0.7.40"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-api.js?v=0.7.47"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-render.js?v=0.7.47"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-settings.js?v=0.7.47"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin.js?v=0.7.47"></script>
 <!-- END_IF -->

@@ -77,6 +77,9 @@
           throw new Error((json && json.message) || 'いいねを保存できませんでした。');
         }
         updateButtons(button, json);
+        if (json.liked) {
+          showThanksMessage(button);
+        }
       })
       .catch(function(error) {
         button.setAttribute('data-error', error && error.message ? error.message : 'error');
@@ -169,6 +172,204 @@
         button.classList.toggle('df-like-button--count-zero', nextCount <= 0);
       }
     });
+  }
+
+  function showThanksMessage(button) {
+    var message = (button.getAttribute('data-thanks-message') || '').trim();
+    if (!message) {
+      return;
+    }
+    removeThanksMessage();
+
+    var bubble = document.createElement('span');
+    var accent = normalizeAccent(button.getAttribute('data-thanks-accent') || 'none');
+    bubble.className = 'df-like-thanks-message';
+    if (accent !== 'none') {
+      bubble.classList.add('df-like-thanks-message--has-accent');
+      bubble.classList.add('df-like-thanks-message--' + accent);
+    }
+    bubble.setAttribute('role', 'status');
+    bubble.setAttribute('aria-live', 'polite');
+
+    var text = document.createElement('span');
+    text.className = 'df-like-thanks-message__text';
+    text.textContent = message;
+    bubble.appendChild(text);
+    appendThanksAccent(bubble, accent);
+
+    document.body.appendChild(bubble);
+    positionThanksMessage(button, bubble);
+
+    activateThanksMessage(bubble);
+
+    bubble._dfLikeTimer = window.setTimeout(function() {
+      hideThanksMessage(bubble);
+    }, 2400);
+  }
+
+  function activateThanksMessage(bubble) {
+    var show = function() {
+      if (bubble.parentElement) {
+        bubble.classList.add('is-visible');
+        playThanksAccent(bubble);
+      }
+    };
+
+    bubble.getBoundingClientRect();
+    if (typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(function() {
+        window.requestAnimationFrame(show);
+      });
+      return;
+    }
+    window.setTimeout(show, 40);
+  }
+
+  function hideThanksMessage(bubble) {
+    if (!bubble || !bubble.parentElement) {
+      return;
+    }
+    if (bubble._dfLikeTimer) {
+      window.clearTimeout(bubble._dfLikeTimer);
+      bubble._dfLikeTimer = null;
+    }
+    bubble.classList.remove('is-visible');
+    bubble.classList.add('is-hiding');
+    window.setTimeout(function() {
+      if (bubble.parentElement) {
+        bubble.parentElement.removeChild(bubble);
+      }
+    }, 260);
+  }
+
+  function removeThanksMessage() {
+    Array.prototype.slice.call(document.querySelectorAll('.df-like-thanks-message')).forEach(function(bubble) {
+      if (bubble._dfLikeTimer) {
+        window.clearTimeout(bubble._dfLikeTimer);
+      }
+      if (bubble.parentElement) {
+        bubble.parentElement.removeChild(bubble);
+      }
+    });
+  }
+
+  function positionThanksMessage(button, bubble) {
+    var rect = button.getBoundingClientRect();
+    var bubbleRect = bubble.getBoundingClientRect();
+    var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+    var margin = 12;
+    var halfWidth = bubbleRect.width / 2;
+    var buttonCenter = rect.left + (rect.width / 2);
+    var left = buttonCenter;
+    var minLeft = margin + halfWidth;
+    var maxLeft = viewportWidth ? viewportWidth - margin - halfWidth : left;
+
+    if (viewportWidth && maxLeft >= minLeft) {
+      left = Math.min(Math.max(left, minLeft), maxLeft);
+    }
+
+    var visualLeft = left - halfWidth;
+    var arrowLeft = Math.min(Math.max(buttonCenter - visualLeft, 14), bubbleRect.width - 14);
+    bubble.style.left = left + 'px';
+    bubble.style.top = rect.top + 'px';
+    bubble.style.setProperty('--df-like-arrow-left', arrowLeft + 'px');
+  }
+
+  function normalizeAccent(value) {
+    if (value === 'fireworks') {
+      return 'confetti';
+    }
+    return ['none', 'confetti', 'cracker', 'star', 'heart', 'thanks_face'].indexOf(value) !== -1 ? value : 'none';
+  }
+
+  function appendThanksAccent(bubble, accent) {
+    if (accent === 'none') {
+      return;
+    }
+    var holder = document.createElement('span');
+    holder.className = 'df-like-thanks-message__accent';
+    holder.setAttribute('aria-hidden', 'true');
+
+    if (accent === 'confetti') {
+      appendAccentPieces(holder, ['🌱', '🌼', '🍀']);
+    } else if (accent === 'cracker') {
+      appendAccentPieces(holder, ['🎉', '✨']);
+    } else if (accent === 'star') {
+      appendAccentPieces(holder, ['⭐', '🌟', '✨']);
+    } else if (accent === 'heart') {
+      appendAccentPieces(holder, ['💖', '💕', '✨']);
+    } else if (accent === 'thanks_face') {
+      appendAccentPieces(holder, ['😊', '🙏', '✨']);
+    }
+
+    bubble.appendChild(holder);
+  }
+
+  function appendAccentPieces(holder, pieces) {
+    pieces.forEach(function(piece, index) {
+      var span = document.createElement('span');
+      span.className = 'df-like-thanks-message__accent-piece df-like-thanks-message__accent-piece--' + (index + 1);
+      span.style.setProperty('--df-like-accent-index', String(index));
+      span.textContent = piece;
+      holder.appendChild(span);
+    });
+  }
+
+  function playThanksAccent(bubble) {
+    var pieces = Array.prototype.slice.call(bubble.querySelectorAll('.df-like-thanks-message__accent-piece'));
+    if (!pieces.length) {
+      return;
+    }
+    var reduceMotion = window.matchMedia
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var useWebAnimation = !reduceMotion && typeof pieces[0].animate === 'function';
+    if (useWebAnimation) {
+      bubble.classList.add('df-like-thanks-message--js-animated');
+    }
+    pieces.forEach(function(piece, index) {
+      window.setTimeout(function() {
+        if (piece.parentElement) {
+          piece.classList.add('is-active');
+          if (reduceMotion) {
+            piece.style.transition = 'opacity .22s ease';
+            piece.style.transform = 'none';
+            piece.style.opacity = '1';
+          }
+          if (useWebAnimation) {
+            piece.animate(thanksAccentKeyframes(bubble, index), {
+              duration: 760,
+              easing: 'cubic-bezier(.16, .92, .24, 1.22)',
+              fill: 'forwards'
+            });
+          }
+        }
+      }, index * 90);
+    });
+  }
+
+  function thanksAccentKeyframes(bubble, index) {
+    if (bubble.classList.contains('df-like-thanks-message--confetti')) {
+      return floatingAccentKeyframes(index, 8, 7, 5);
+    }
+    if (bubble.classList.contains('df-like-thanks-message--cracker')) {
+      return floatingAccentKeyframes(index, 5, 8, 3);
+    }
+    if (bubble.classList.contains('df-like-thanks-message--star')) {
+      return floatingAccentKeyframes(index, 7, 8, 3);
+    }
+    if (bubble.classList.contains('df-like-thanks-message--heart')) {
+      return floatingAccentKeyframes(index, 6, 9, 4);
+    }
+    return floatingAccentKeyframes(index, 4, 7, 2);
+  }
+
+  function floatingAccentKeyframes(index, spread, lift, drift) {
+    var x = (index - 1) * spread;
+    return [
+      { opacity: 0, transform: 'translate(' + (x * .35) + 'px, 8px) scale(.92)' },
+      { opacity: 1, transform: 'translate(' + x + 'px, -' + lift + 'px) scale(1.02)', offset: .68 },
+      { opacity: 1, transform: 'translate(' + (x + drift) + 'px, -' + (lift + 2) + 'px) scale(1)' }
+    ];
   }
 
   function relatedButtons(sourceButton) {
