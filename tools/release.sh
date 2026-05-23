@@ -167,6 +167,7 @@ else
 fi
 
 sync_release_json() {
+  RELEASE_JSON_SYNCED=0
   if [ "${DF_RELEASE_SYNC_ENABLED:-}" != "1" ]; then
     echo "Release JSON sync skipped. Set DF_RELEASE_SYNC_ENABLED=1 to enable it."
     return 0
@@ -196,6 +197,7 @@ sync_release_json() {
   if sftp -P "$port" -b "$batch_file" "$DF_RELEASE_SYNC_USER@$DF_RELEASE_SYNC_HOST"; then
     echo "Release JSON synced: $remote_latest"
     rm -f "$batch_file"
+    RELEASE_JSON_SYNCED=1
     return 0
   fi
 
@@ -204,7 +206,53 @@ sync_release_json() {
   return 1
 }
 
+publish_release_entry() {
+  if [ "${DF_RELEASE_PUBLISH_ENABLED:-}" != "1" ]; then
+    echo "Release entry publish skipped. Set DF_RELEASE_PUBLISH_ENABLED=1 to enable it."
+    return 0
+  fi
+
+  if [ "${RELEASE_JSON_SYNCED:-0}" != "1" ]; then
+    echo "Release entry publish skipped because CMS JSON sync did not complete."
+    return 0
+  fi
+
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "curl command was not found. GitHub Release and CMS JSON sync are done, but release entry publish failed." >&2
+    return 1
+  fi
+
+  : "${DF_RELEASE_PUBLISH_ENDPOINT:?DF_RELEASE_PUBLISH_ENDPOINT is required when DF_RELEASE_PUBLISH_ENABLED=1}"
+  : "${DF_RELEASE_PUBLISH_TOKEN:?DF_RELEASE_PUBLISH_TOKEN is required when DF_RELEASE_PUBLISH_ENABLED=1}"
+
+  local response_file="/private/tmp/$PRODUCT-$TAG-publish-response.json"
+  if curl -fsS \
+    -X POST \
+    -H 'X-Requested-With: XMLHttpRequest' \
+    -F 'ACMS_POST_ReleasePublisherWebhook=1' \
+    -F "api_token=$DF_RELEASE_PUBLISH_TOKEN" \
+    -F "product=$PRODUCT" \
+    -F "version=$VERSION" \
+    "$DF_RELEASE_PUBLISH_ENDPOINT" \
+    -o "$response_file"; then
+    if "$PHP_BIN" -r '$json = json_decode(file_get_contents($argv[1]), true); exit(is_array($json) && ($json["status"] ?? "") === "success" ? 0 : 1);' "$response_file"; then
+      echo "Release entry publish requested: $PRODUCT $VERSION"
+      rm -f "$response_file"
+      return 0
+    fi
+    echo "GitHub Release and CMS JSON sync are done, but release entry publish returned failure." >&2
+    cat "$response_file" >&2
+    rm -f "$response_file"
+    return 1
+  fi
+
+  rm -f "$response_file"
+  echo "GitHub Release and CMS JSON sync are done, but release entry publish failed." >&2
+  return 1
+}
+
 sync_release_json
+publish_release_entry
 
 echo "Published $TAG"
 echo "ZIP: $ZIP_PATH"

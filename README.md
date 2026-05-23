@@ -397,6 +397,18 @@ IPアドレスやUser-Agentの生値は保存しません。内部ログは運�
 - いいね履歴インポートは移行補助向けです。移行元の完全な履歴精度が必要な場合は、任意列をできるだけ指定してください。
 - `tests/LikeButtonRendererTest.php` はローカルDB fixtureに依存します。実行前にテストファイル冒頭の前提を確認してください。
 
+## リリース告知連携
+
+`DF_RELEASE_SYNC_ENABLED=1` でリリースJSONをSFTP配置したあと、`DF_RELEASE_PUBLISH_ENABLED=1` の場合だけDFリリースへ告知作成POSTを送ります。
+
+```sh
+export DF_RELEASE_PUBLISH_ENABLED=1
+export DF_RELEASE_PUBLISH_ENDPOINT="https://example.com/bid/1/"
+export DF_RELEASE_PUBLISH_TOKEN="DFリリース管理画面のAPIトークン"
+```
+
+`DF_RELEASE_PUBLISH_ENABLED` が未設定の場合、既存のリリース処理は変わりません。
+
 ## サポートとカスタマイズ
 
 この拡張アプリは、データファームが a-blog cms の運用改善に取り組む中で開発した実用品です。
