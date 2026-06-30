@@ -6,9 +6,9 @@
   </div>
 </header>
 
-<link rel="stylesheet" href="/extension/plugins/DF_Like/assets/df-like-admin.css?v=0.7.48">
+<link rel="stylesheet" href="/extension/plugins/DF_Like/assets/df-like-admin.css?v=0.7.49">
 
-<section class="df-like-admin js-df-like-admin" data-current-version="0.7.48">
+<section class="df-like-admin js-df-like-admin" data-current-version="0.7.49">
   <div class="df-like-admin-sticky-header">
     <div>
       <h1 class="acms-admin-admin-title"><!--T-->DFいいね解析<!--/T--></h1>
@@ -233,6 +233,17 @@
             </div>
             <p class="df-like-admin-local-status js-df-like-notify-copy-status" role="status" aria-live="polite"></p>
             <input type="hidden" name="config[]" value="df_like_notify_form_id">
+          </td>
+        </tr>
+        <tr>
+          <th><!--T-->通知診断ログ<!--/T--><i class="acms-admin-icon-tooltip js-acms-tooltip-hover" data-acms-tooltip="<!--T-->調査用です。ONにすると、送信失敗だけでなく送信試行成功も最近のエラーに記録します。<!--/T-->"></i></th>
+          <td>
+            <select name="df_like_notify_debug" class="acms-admin-form-width-small" data-config-value="{df_like_notify_debug}">
+              <option value="disabled"{df_like_notify_debug:selected#disabled}><!--T-->OFF<!--/T--></option>
+              <option value="enabled"{df_like_notify_debug:selected#enabled}><!--T-->ON<!--/T--></option>
+            </select>
+            <p class="acms-admin-text-muted"><!--T-->メールが届かない原因調査用です。通常運用ではOFFにしてください。ONの場合、Mailerで例外が出なかった送信試行も「最近のエラー」に記録します。<!--/T--></p>
+            <input type="hidden" name="config[]" value="df_like_notify_debug">
           </td>
         </tr>
       </table>
@@ -521,8 +532,8 @@
   </section>
 </section>
 
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-api.js?v=0.7.48"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-render.js?v=0.7.48"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-settings.js?v=0.7.48"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin.js?v=0.7.48"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-api.js?v=0.7.49"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-render.js?v=0.7.49"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-settings.js?v=0.7.49"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin.js?v=0.7.49"></script>
 <!-- END_IF -->

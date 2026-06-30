@@ -68,7 +68,7 @@ class LikeNotification
             }
             if ($mail->get('AdminFormSend') !== 'no') {
                 $mailer->send();
-                return self::result('success', '通知メールを送信しました。', $context);
+                return self::result('success', '通知メール送信を試行しました（Mailer例外なし）。', $context, self::debugEnabled($blogId));
             }
             return self::result('send_skipped', 'フォーム側の管理者宛メール送信がOFFです。', $context);
         } catch (\Throwable $e) {
@@ -165,12 +165,13 @@ class LikeNotification
         return LikeBlogContext::configValue($key, $fallback, $blogId);
     }
 
-    private static function result(string $status, string $message, array $context = []): array
+    private static function result(string $status, string $message, array $context = [], bool $logSuccess = false): array
     {
         return [
             'notification_status' => $status,
             'notification_message' => $message,
             'notification_context' => $context + ['notification_status' => $status],
+            'notification_log_success' => $logSuccess,
         ];
     }
 
@@ -186,8 +187,15 @@ class LikeNotification
             'form_scope' => (string)($form['scope'] ?? ''),
             'AdminFormSend' => (string)$mail->get('AdminFormSend'),
             'AdminTo_count' => count($to),
+            'has_from' => ($mail->get('AdminFrom') ?: $mail->get('To')) !== '',
+            'AdminReplyTo_count' => count($mail->getArray('AdminReply-To') ?: $mail->getArray('To')),
             'has_subject' => $subject !== '',
             'has_body' => $body !== '',
         ];
+    }
+
+    private static function debugEnabled(int $blogId): bool
+    {
+        return self::configValue('df_like_notify_debug', 'disabled', $blogId) === 'enabled';
     }
 }

@@ -55,7 +55,8 @@ class DFLikeToggle extends ACMS_POST
                     $notificationContext = (array)($notification['notification_context'] ?? []);
                     $result = array_merge($result, $notification);
                     unset($result['notification_context']);
-                    if (($notification['notification_status'] ?? '') !== 'success') {
+                    unset($result['notification_log_success']);
+                    if (($notification['notification_status'] ?? '') !== 'success' || !empty($notification['notification_log_success'])) {
                         LikeErrorLogger::log('notification', (string)($notification['notification_message'] ?? '通知に失敗しました。'), [
                             'blog_id' => $blogId,
                             'entry_id' => $entryId,
