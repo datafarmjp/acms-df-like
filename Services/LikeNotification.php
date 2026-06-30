@@ -12,25 +12,42 @@ class LikeNotification
     {
         $blogId = (int)($target['blog_id'] ?? 0);
         if (self::configValue('df_like_notify_enabled', 'disabled', $blogId) !== 'enabled') {
-            return ['notification_status' => 'disabled'];
+            return self::result('disabled', 'DFいいね通知設定がOFFです。', [
+                'blog_id' => $blogId,
+                'entry_id' => (int)($target['entry_id'] ?? 0),
+            ]);
         }
         $formId = (int)self::configValue('df_like_notify_form_id', '0', $blogId);
         if ($formId <= 0) {
-            return ['notification_status' => 'failure', 'notification_message' => '通知フォームが指定されていません。'];
+            return self::result('no_form', '通知フォームが指定されていません。', [
+                'blog_id' => $blogId,
+                'entry_id' => (int)($target['entry_id'] ?? 0),
+                'form_id' => $formId,
+            ]);
         }
 
+        $context = [
+            'blog_id' => $blogId,
+            'entry_id' => (int)($target['entry_id'] ?? 0),
+            'form_id' => $formId,
+        ];
         try {
             $form = self::formById($formId);
             if (!$form) {
-                return ['notification_status' => 'failure', 'notification_message' => '通知フォームが見つかりません。'];
+                return self::result('form_not_found', '通知フォームが見つかりません。', [
+                    'blog_id' => $blogId,
+                    'entry_id' => (int)($target['entry_id'] ?? 0),
+                    'form_id' => $formId,
+                ]);
             }
             $mail = $form['data']->getChild('mail');
             $fields = self::mailFields($target);
             $to = $mail->getArray('AdminTo');
             $subject = self::templateText($mail, $fields, 'AdminSubject', 'AdminSubjectTpl');
             $body = self::templateText($mail, $fields, 'AdminBody', 'AdminBodyTpl');
+            $context = self::diagnosticContext($target, $form, $mail, $to, $subject, $body);
             if (!$to || $subject === '' || $body === '') {
-                return ['notification_status' => 'failure', 'notification_message' => '通知フォームの宛先・件名・本文を確認してください。'];
+                return self::result('invalid_mail_settings', '通知フォームの宛先・件名・本文を確認してください。', $context);
             }
 
             $from = $mail->get('AdminFrom') ?: $mail->get('To');
@@ -51,10 +68,11 @@ class LikeNotification
             }
             if ($mail->get('AdminFormSend') !== 'no') {
                 $mailer->send();
+                return self::result('success', '通知メールを送信しました。', $context);
             }
-            return ['notification_status' => 'success'];
+            return self::result('send_skipped', 'フォーム側の管理者宛メール送信がOFFです。', $context);
         } catch (\Throwable $e) {
-            return ['notification_status' => 'failure', 'notification_message' => $e->getMessage()];
+            return self::result('send_failed', $e->getMessage(), $context);
         }
     }
 
@@ -145,5 +163,31 @@ class LikeNotification
     private static function configValue(string $key, string $fallback, int $blogId): string
     {
         return LikeBlogContext::configValue($key, $fallback, $blogId);
+    }
+
+    private static function result(string $status, string $message, array $context = []): array
+    {
+        return [
+            'notification_status' => $status,
+            'notification_message' => $message,
+            'notification_context' => $context + ['notification_status' => $status],
+        ];
+    }
+
+    private static function diagnosticContext(array $target, array $form, Field $mail, array $to, string $subject, string $body): array
+    {
+        return [
+            'blog_id' => (int)($target['blog_id'] ?? 0),
+            'entry_id' => (int)($target['entry_id'] ?? 0),
+            'form_id' => (int)($form['id'] ?? 0),
+            'form_code' => (string)($form['code'] ?? ''),
+            'form_name' => (string)($form['name'] ?? ''),
+            'form_blog_id' => (int)($form['bid'] ?? 0),
+            'form_scope' => (string)($form['scope'] ?? ''),
+            'AdminFormSend' => (string)$mail->get('AdminFormSend'),
+            'AdminTo_count' => count($to),
+            'has_subject' => $subject !== '',
+            'has_body' => $body !== '',
+        ];
     }
 }

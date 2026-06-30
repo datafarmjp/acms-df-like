@@ -52,14 +52,16 @@ class DFLikeToggle extends ACMS_POST
                     'referer' => isset($_SERVER['HTTP_REFERER']) ? (string)$_SERVER['HTTP_REFERER'] : '',
                 ]);
                 if ($notification) {
+                    $notificationContext = (array)($notification['notification_context'] ?? []);
                     $result = array_merge($result, $notification);
-                    if (($notification['notification_status'] ?? '') === 'failure') {
+                    unset($result['notification_context']);
+                    if (($notification['notification_status'] ?? '') !== 'success') {
                         LikeErrorLogger::log('notification', (string)($notification['notification_message'] ?? '通知に失敗しました。'), [
                             'blog_id' => $blogId,
                             'entry_id' => $entryId,
                             'object_type' => $objectType,
                             'object_id' => $objectId,
-                        ]);
+                        ] + $notificationContext);
                     }
                 }
             }
