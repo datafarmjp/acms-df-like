@@ -533,6 +533,74 @@
     });
   };
 
+  Admin.setupNotifyTest = function(root) {
+    var button = root.querySelector('.js-df-like-notify-test');
+    var status = root.querySelector('.js-df-like-notify-test-status');
+    var select = root.querySelector('.js-df-like-notify-form-select');
+    var input = root.querySelector('.js-df-like-notify-form-id');
+    var fallback = root.querySelector('.js-df-like-notify-form-id-fallback');
+    if (!button || !status) {
+      return;
+    }
+    button.addEventListener('click', function() {
+      var formId = '';
+      if (select && !select.disabled && select.value) {
+        formId = select.value;
+      } else if (input && input.value) {
+        formId = input.value;
+      } else if (fallback && fallback.value) {
+        formId = fallback.value;
+      }
+      if (!formId) {
+        status.className = Admin.statusClass(status, 'danger');
+        status.textContent = '通知フォームを選択してください。';
+        return;
+      }
+      button.disabled = true;
+      status.className = Admin.statusClass(status, 'muted');
+      status.textContent = '通知テストを送信しています...';
+      Admin.postJsonWithFallback(
+        ['ACMS_POST_DFLikeNotificationTest', 'ACMS_POST_DF_Like_DFLikeNotificationTest'],
+        function(action) {
+          var formData = new FormData();
+          formData.append(action, '1');
+          formData.append('form_id', formId);
+          Admin.appendCsrfToken(formData);
+          return formData;
+        },
+        '通知テストを送信できませんでした。'
+      ).then(function(json) {
+        var ok = json && json.status === 'success';
+        status.className = Admin.statusClass(status, ok ? 'success' : 'danger');
+        status.innerHTML = Admin.notifyTestResultHtml(json, ok);
+      }).catch(function(error) {
+        status.className = Admin.statusClass(status, 'danger');
+        status.textContent = error && error.message ? error.message : '通知テストを送信できませんでした。';
+      }).finally(function() {
+        button.disabled = false;
+      });
+    });
+  };
+
+  Admin.notifyTestResultHtml = function(json, ok) {
+    if (!json) {
+      return '通知テストを送信できませんでした。';
+    }
+    var message = json.message || (ok ? '通知テストを送信しました。' : '通知テストに失敗しました。');
+    var html = '<span>' + Admin.escapeHtml(message) + '</span>';
+    var diagnostics = json.diagnostics || {};
+    var keys = ['form_id', 'form_code', 'form_name', 'form_blog_id', 'form_scope', 'AdminFormSend', 'AdminTo_count', 'has_from', 'AdminReplyTo_count', 'has_subject', 'has_body'];
+    var rows = keys.filter(function(key) {
+      return Object.prototype.hasOwnProperty.call(diagnostics, key);
+    }).map(function(key) {
+      return key + ': ' + diagnostics[key];
+    });
+    if (rows.length) {
+      html += '<details class="df-like-admin-error-detail"><summary title="詳細">詳細</summary><pre>' + Admin.escapeHtml(rows.join('\n')) + '</pre></details>';
+    }
+    return html;
+  };
+
   Admin.copyWithStatus = function(text, status, successMessage, failureMessage) {
     Admin.copyText(text).then(function() {
       if (status) {

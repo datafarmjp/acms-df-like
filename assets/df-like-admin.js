@@ -58,6 +58,7 @@
     Admin.setupFeatureToggle(autoInsertToggle, autoInsertValue);
     Admin.setupFeatureToggle(notifyToggle, notifyValue);
     Admin.setupNotifyForms(root);
+    Admin.setupNotifyTest(root);
     Admin.setupPreview(root);
     setupUpdateNotice(root);
     cleanupMenuUpdateDots();

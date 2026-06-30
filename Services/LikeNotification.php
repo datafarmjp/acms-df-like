@@ -26,6 +26,28 @@ class LikeNotification
             ]);
         }
 
+        return self::sendWithForm($target, $formId, self::debugEnabled($blogId));
+    }
+
+    public static function sendTest(int $blogId, int $formId): array
+    {
+        $siteUrl = function_exists('acmsLink') ? acmsLink(['bid' => $blogId]) : '';
+        return self::sendWithForm([
+            'blog_id' => $blogId,
+            'entry_id' => 0,
+            'entry_id_label' => 'test',
+            'entry_title' => 'DFいいね 通知テスト',
+            'entry_url' => $siteUrl,
+            'object_type' => 'entry',
+            'object_id' => 'test',
+            'count' => 0,
+            'referer' => 'DF_Like notification test',
+        ], $formId, true);
+    }
+
+    private static function sendWithForm(array $target, int $formId, bool $logSuccess): array
+    {
+        $blogId = (int)($target['blog_id'] ?? 0);
         $context = [
             'blog_id' => $blogId,
             'entry_id' => (int)($target['entry_id'] ?? 0),
@@ -68,7 +90,7 @@ class LikeNotification
             }
             if ($mail->get('AdminFormSend') !== 'no') {
                 $mailer->send();
-                return self::result('success', '通知メール送信を試行しました（Mailer例外なし）。', $context, self::debugEnabled($blogId));
+                return self::result('success', '通知メール送信を試行しました（Mailer例外なし）。', $context, $logSuccess);
             }
             return self::result('send_skipped', 'フォーム側の管理者宛メール送信がOFFです。', $context);
         } catch (\Throwable $e) {
@@ -133,11 +155,12 @@ class LikeNotification
     private static function mailFields(array $target): Field
     {
         $field = new Field();
+        $entryIdValue = $target['entry_id_label'] ?? ($target['entry_id'] ?? 0);
         $entryId = (int)($target['entry_id'] ?? 0);
         $blogId = (int)($target['blog_id'] ?? 0);
-        $field->set('entry_id', $entryId);
-        $field->set('entry_title', $entryId > 0 && class_exists('\ACMS_RAM') ? (string)\ACMS_RAM::entryTitle($entryId) : '');
-        $field->set('entry_url', $entryId > 0 && function_exists('acmsLink') ? acmsLink(['bid' => $blogId, 'eid' => $entryId]) : '');
+        $field->set('entry_id', $entryIdValue);
+        $field->set('entry_title', (string)($target['entry_title'] ?? ($entryId > 0 && class_exists('\ACMS_RAM') ? (string)\ACMS_RAM::entryTitle($entryId) : '')));
+        $field->set('entry_url', (string)($target['entry_url'] ?? ($entryId > 0 && function_exists('acmsLink') ? acmsLink(['bid' => $blogId, 'eid' => $entryId]) : '')));
         $field->set('object_type', (string)($target['object_type'] ?? 'entry'));
         $field->set('object_id', (string)($target['object_id'] ?? ''));
         $field->set('like_count', (int)($target['count'] ?? 0));
