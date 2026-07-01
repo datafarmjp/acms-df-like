@@ -596,7 +596,7 @@
       return key + ': ' + diagnostics[key];
     });
     if (rows.length) {
-      html += '<details class="df-like-admin-error-detail"><summary title="詳細">詳細</summary><pre>' + Admin.escapeHtml(rows.join('\n')) + '</pre></details>';
+      html += '<details class="df-like-admin-error-detail df-like-admin-notify-test-detail"><summary title="詳細">詳細</summary><pre>' + Admin.escapeHtml(rows.join('\n')) + '</pre></details>';
     }
     return html;
   };
