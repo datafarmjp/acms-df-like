@@ -210,11 +210,58 @@ class LikeNotification
             'form_scope' => (string)($form['scope'] ?? ''),
             'AdminFormSend' => (string)$mail->get('AdminFormSend'),
             'AdminTo_count' => count($to),
+            'AdminTo_masked' => self::maskEmails($to),
+            'AdminCc_count' => count($mail->getArray('AdminCc')),
+            'AdminCc_masked' => self::maskEmails($mail->getArray('AdminCc')),
+            'AdminBcc_count' => count($mail->getArray('AdminBcc')),
+            'AdminBcc_masked' => self::maskEmails($mail->getArray('AdminBcc')),
             'has_from' => ($mail->get('AdminFrom') ?: $mail->get('To')) !== '',
+            'AdminFrom_masked' => self::maskEmail($mail->get('AdminFrom') ?: $mail->get('To')),
             'AdminReplyTo_count' => count($mail->getArray('AdminReply-To') ?: $mail->getArray('To')),
+            'AdminReplyTo_masked' => self::maskEmails($mail->getArray('AdminReply-To') ?: $mail->getArray('To')),
             'has_subject' => $subject !== '',
+            'subject_preview' => self::previewText($subject),
             'has_body' => $body !== '',
+            'body_length' => strlen($body),
+            'AdminSubjectTpl' => (string)$mail->get('AdminSubjectTpl'),
+            'AdminBodyTpl' => (string)$mail->get('AdminBodyTpl'),
+            'AdminBodyHTMLTpl' => (string)$mail->get('AdminBodyHTMLTpl'),
+            'AdminBodyHTMLTpl_found' => $mail->get('AdminBodyHTMLTpl') ? (findTemplate($mail->get('AdminBodyHTMLTpl')) ? 'yes' : 'no') : '',
+            'AdminAttachment' => (string)$mail->get('AdminAttachment'),
         ];
+    }
+
+    private static function maskEmails(array $emails): string
+    {
+        return implode(', ', array_map([self::class, 'maskEmail'], array_filter($emails, function ($email) {
+            return (string)$email !== '';
+        })));
+    }
+
+    private static function maskEmail(string $email): string
+    {
+        $email = trim($email);
+        if ($email === '') {
+            return '';
+        }
+        if (strpos($email, '@') === false) {
+            return self::previewText($email, 24);
+        }
+        [$local, $domain] = explode('@', $email, 2);
+        $prefix = function_exists('mb_substr') ? mb_substr($local, 0, 2) : substr($local, 0, 2);
+        return $prefix . '***@' . $domain;
+    }
+
+    private static function previewText(string $text, int $limit = 80): string
+    {
+        $text = trim(preg_replace('/\s+/u', ' ', $text) ?: '');
+        if ($text === '') {
+            return '';
+        }
+        if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+            return mb_strlen($text) > $limit ? mb_substr($text, 0, $limit) . '...' : $text;
+        }
+        return strlen($text) > $limit ? substr($text, 0, $limit) . '...' : $text;
     }
 
     private static function debugEnabled(int $blogId): bool

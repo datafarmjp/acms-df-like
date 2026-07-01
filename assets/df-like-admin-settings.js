@@ -589,11 +589,37 @@
     var message = json.message || (ok ? '通知テストを送信しました。' : '通知テストに失敗しました。');
     var html = '<span>' + Admin.escapeHtml(message) + '</span>';
     var diagnostics = json.diagnostics || {};
-    var keys = ['form_id', 'form_code', 'form_name', 'form_blog_id', 'form_scope', 'AdminFormSend', 'AdminTo_count', 'has_from', 'AdminReplyTo_count', 'has_subject', 'has_body'];
+    var keys = [
+      'form_id',
+      'form_code',
+      'form_name',
+      'form_blog_id',
+      'form_scope',
+      'AdminFormSend',
+      'AdminTo_count',
+      'AdminTo_masked',
+      'AdminCc_count',
+      'AdminCc_masked',
+      'AdminBcc_count',
+      'AdminBcc_masked',
+      'has_from',
+      'AdminFrom_masked',
+      'AdminReplyTo_count',
+      'AdminReplyTo_masked',
+      'has_subject',
+      'subject_preview',
+      'has_body',
+      'body_length',
+      'AdminSubjectTpl',
+      'AdminBodyTpl',
+      'AdminBodyHTMLTpl',
+      'AdminBodyHTMLTpl_found',
+      'AdminAttachment'
+    ];
     var rows = keys.filter(function(key) {
       return Object.prototype.hasOwnProperty.call(diagnostics, key);
     }).map(function(key) {
-      return key + ': ' + diagnostics[key];
+      return key + ': ' + (diagnostics[key] === '' ? '(empty)' : diagnostics[key]);
     });
     if (rows.length) {
       html += '<details class="df-like-admin-error-detail df-like-admin-notify-test-detail"><summary title="詳細">詳細</summary><pre>' + Admin.escapeHtml(rows.join('\n')) + '</pre></details>';
