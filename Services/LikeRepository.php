@@ -28,6 +28,14 @@ class LikeRepository
     {
         self::ensureTables();
         $liked = self::liked($target['object_type'], $target['object_id'], $visitorHash);
+        if (self::isTargetCooldown($target['object_type'], $target['object_id'], $visitorHash)) {
+            return [
+                'liked' => $liked,
+                'action' => 'cooldown',
+                'count' => self::count($target['object_type'], $target['object_id']),
+                'message' => '短時間の連続操作を抑制しました。',
+            ];
+        }
         if (!$liked && self::isRateLimited($ipHash, $userAgentHash)) {
             throw new \RuntimeException('短時間にいいね操作が集中しています。少し時間をおいてからお試しください。');
         }
@@ -359,6 +367,26 @@ class LikeRepository
             ],
         ], 'one');
         return $count >= 10;
+    }
+
+    private static function isTargetCooldown(string $objectType, string $objectId, string $visitorHash): bool
+    {
+        if ($objectType === '' || $objectId === '' || $visitorHash === '') {
+            return false;
+        }
+        $count = (int)\DB::query([
+            'sql' => 'SELECT COUNT(*) FROM `' . self::table('df_like_log') . '`
+                WHERE log_object_type = :object_type
+                AND log_object_id = :object_id
+                AND log_visitor_hash = :visitor_hash
+                AND log_created_at >= DATE_SUB(NOW(), INTERVAL 3 SECOND)',
+            'params' => [
+                'object_type' => $objectType,
+                'object_id' => $objectId,
+                'visitor_hash' => $visitorHash,
+            ],
+        ], 'one');
+        return $count > 0;
     }
 
     public static function ensureTables(): void

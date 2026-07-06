@@ -77,7 +77,7 @@
           throw new Error((json && json.message) || 'いいねを保存できませんでした。');
         }
         updateButtons(button, json);
-        if (json.liked) {
+        if (json.liked && json.action === 'like') {
           showThanksMessage(button);
         }
       })
