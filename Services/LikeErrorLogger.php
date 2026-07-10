@@ -4,6 +4,8 @@ namespace Acms\Plugins\DF_Like\Services;
 
 class LikeErrorLogger
 {
+    private static $tableReady = false;
+
     public static function log(string $type, string $message, array $context = []): void
     {
         try {
@@ -74,6 +76,9 @@ class LikeErrorLogger
 
     public static function ensureTable(): void
     {
+        if (self::$tableReady) {
+            return;
+        }
         $table = LikeRepository::table('df_like_error_log');
         \DB::query([
             'sql' => "CREATE TABLE IF NOT EXISTS `{$table}` (
@@ -91,6 +96,7 @@ class LikeErrorLogger
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
             'params' => [],
         ], 'exec');
+        self::$tableReady = true;
     }
 
     private static function shorten(string $value, int $length): string

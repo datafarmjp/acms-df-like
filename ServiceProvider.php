@@ -11,7 +11,7 @@ use Acms\Services\Common\InjectTemplate;
 
 class ServiceProvider extends ACMS_App
 {
-    const VERSION = '0.7.53';
+    const VERSION = '0.7.54';
 
     private static $postWrappers = [
         'DFLikeToggle.php',
@@ -36,6 +36,7 @@ class ServiceProvider extends ACMS_App
     ];
 
     private static $v2GetWrappers = [
+        'DFLikeAnalytics.php',
         'DFLikeRanking.php',
     ];
 
@@ -54,7 +55,7 @@ class ServiceProvider extends ACMS_App
 
     public function init()
     {
-        $this->boot(false);
+        $this->boot(false, false);
         $this->attachHook();
         $this->injectAdminTemplate();
     }
@@ -66,7 +67,7 @@ class ServiceProvider extends ACMS_App
 
     public function install()
     {
-        $this->boot(true);
+        $this->boot(true, true);
     }
 
     public function uninstall()
@@ -75,13 +76,13 @@ class ServiceProvider extends ACMS_App
 
     public function update()
     {
-        $this->boot(true);
+        $this->boot(true, true);
         return true;
     }
 
     public function activate()
     {
-        $this->boot(true);
+        $this->boot(true, true);
         return true;
     }
 
@@ -96,10 +97,12 @@ class ServiceProvider extends ACMS_App
         Bootstrap::registerAutoloader();
     }
 
-    private function boot($withTables)
+    private function boot($withTables, $withManagedFiles)
     {
         self::registerAutoloader();
-        $this->syncManagedFiles();
+        if ($withManagedFiles) {
+            $this->syncManagedFiles();
+        }
         if ($withTables) {
             $this->createTables();
         }
@@ -107,7 +110,7 @@ class ServiceProvider extends ACMS_App
 
     private function syncManagedFiles()
     {
-        $this->syncEntryIndexAsset();
+        $this->removeLegacyEntryIndexAsset();
         $this->syncGetWrappers();
         $this->syncV2GetWrappers();
         $this->syncPostWrappers();
@@ -123,23 +126,29 @@ class ServiceProvider extends ACMS_App
 
     private function injectAdminTemplate()
     {
+        $inject = InjectTemplate::singleton();
+        $inject->add(
+            'admin-main',
+            PLUGIN_DIR . 'DF_Like/template/admin/entry/index-asset.html'
+        );
+        $inject->add(
+            'admin-entry-field',
+            PLUGIN_DIR . 'DF_Like/template/admin/entry/field.html'
+        );
+
         $themesDir = defined('THEMES_DIR') ? THEMES_DIR : 'themes/';
         $legacyTemplate = SCRIPT_DIR . ltrim($themesDir, '/') . 'system/admin/app/df-like.html';
         if (is_file($legacyTemplate) && !$this->archiveLegacyAdminTemplate($legacyTemplate)) {
             return;
         }
 
-        InjectTemplate::singleton()->add(
+        $inject->add(
             'admin-main',
             PLUGIN_DIR . 'DF_Like/template/admin/app/df-like.html'
         );
-        InjectTemplate::singleton()->add(
+        $inject->add(
             'admin-topicpath',
             PLUGIN_DIR . 'DF_Like/template/admin/topicpath/df-like.html'
-        );
-        InjectTemplate::singleton()->add(
-            'admin-entry-field',
-            PLUGIN_DIR . 'DF_Like/template/admin/entry/field.html'
         );
     }
 
@@ -171,7 +180,7 @@ class ServiceProvider extends ACMS_App
         return $backup;
     }
 
-    private function syncEntryIndexAsset()
+    private function removeLegacyEntryIndexAsset()
     {
         $themesDir = defined('THEMES_DIR') ? THEMES_DIR : 'themes/';
         $dest = SCRIPT_DIR . ltrim($themesDir, '/') . 'system/admin/entry/index/v2.html';
@@ -185,36 +194,20 @@ class ServiceProvider extends ACMS_App
             return;
         }
 
-        $block = $this->entryIndexAssetBlock();
-        if (strpos($block, $this->entryIndexAssetMarker) === false || strpos($block, 'df-like-entry-index.js') === false) {
-            $this->logSyncSkipped('エントリー一覧アセット同期をスキップしました', '', $dest, 'invalid_asset_block', strlen($block));
+        if (strpos($content, $this->entryIndexAssetMarker) === false) {
             return;
         }
-        if (strpos($content, $this->entryIndexAssetMarker) !== false) {
-            $next = preg_replace(
-                '/\n?<!-- ' . preg_quote($this->entryIndexAssetMarker, '/') . ' -->.*?<!-- \/' . preg_quote($this->entryIndexAssetMarker, '/') . ' -->\n?/s',
-                "\n" . $block . "\n",
-                $content,
-                1
-            );
-        } elseif (preg_match('/\n@endsection\s*$/', $content)) {
-            $next = preg_replace('/\n@endsection\s*$/', "\n" . $block . "\n@endsection\n", $content, 1);
-        } else {
-            $next = rtrim($content) . "\n\n" . $block . "\n";
-        }
+        $next = preg_replace(
+            '/\n?<!-- ' . preg_quote($this->entryIndexAssetMarker, '/') . ' -->.*?<!-- \/' . preg_quote($this->entryIndexAssetMarker, '/') . ' -->\n?/s',
+            "\n",
+            $content
+        );
 
         if (is_string($next) && $next !== $content) {
             if (@file_put_contents($dest, $next) === false) {
-                $this->logSyncSkipped('エントリー一覧アセット同期に失敗しました', '', $dest, 'write_failed', strlen($next));
+                $this->logSyncSkipped('旧エントリー一覧アセットの削除に失敗しました', '', $dest, 'write_failed', strlen($next));
             }
         }
-    }
-
-    private function entryIndexAssetBlock()
-    {
-        return '<!-- ' . $this->entryIndexAssetMarker . ' -->' . "\n"
-            . '<script src="/extension/plugins/DF_Like/assets/df-like-entry-index.js?v=' . self::VERSION . '"></script>' . "\n"
-            . '<!-- /' . $this->entryIndexAssetMarker . ' -->';
     }
 
     private function syncPostWrappers()

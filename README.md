@@ -23,14 +23,17 @@ extension/plugins/DF_Like/
 - `extension/acms/GET/DFLike.php`
 - `extension/acms/GET/DFLikeAnalytics.php`
 - `extension/acms/GET/DFLike_Analytics.php`（互換用）
+- `extension/acms/Modules/Get/V2/DFLikeAnalytics.php`
+- `extension/acms/Modules/Get/V2/DFLikeRanking.php`
 - `extension/acms/POST/DFLike*.php`
+
+これらの管理ファイルは、インストール、更新、有効化のタイミングで同期します。通常の公開ページ表示では同期処理を行いません。
 
 管理画面は `themes/system/admin/app/df-like.html` へコピーせず、a-blog cms の `InjectTemplate` でプラグイン内テンプレートを差し込みます。旧バージョンで作成された `themes/system/admin/app/df-like.html` は、ファイル内に `DF_Like managed admin app template` がある場合だけ自動で同じディレクトリへ退避されます。退避後は最新のInjectTemplate管理画面が表示されます。管理マーカーがないファイルはユーザー編集の可能性があるため自動退避しません。
 
-また、エントリー一覧V2へ「いいね数」列を追加するため、`themes/system/admin/entry/index/v2.html` に管理マーカー付きで `df-like-entry-index.js` の読み込みを追記します。既にDFいいねの管理マーカーがある場合は、そのブロックだけを更新します。
+エントリー一覧V2の「いいね数」列も、`admin-main` への `InjectTemplate` 差し込みで `df-like-entry-index.js` を読み込みます。`themes/system/admin/entry/index/v2.html` は変更しません。旧バージョンが同ファイルへ追加した `DF_Like managed entry index asset` ブロックは、更新/有効化時にその管理マーカー付きブロックだけを削除します。
 
-これらの同期先ファイルや追記ブロックは生成物として扱い、独立リポジトリでは同期元の `template/` 配下とプラグイン本体を管理します。
-同期先を直接編集しても、DFいいねの更新時に管理マーカー付きブロックはプラグイン内の同期元で上書きされます。
+同期先ラッパーは生成物として扱い、独立リポジトリでは同期元の `template/` 配下とプラグイン本体を管理します。同期先を直接編集しても、DFいいねの更新時に管理マーカー付きラッパーはプラグイン内の同期元で上書きされます。
 
 ### バージョン管理
 
@@ -157,7 +160,7 @@ data-thanks-accent="{thanksAccent}"
 
 エントリー一覧には「いいね数」列を追加します。件数取得に失敗しても一覧本体は壊れないようにしています。
 
-「いいね数」列が表示されない場合は、エントリー一覧画面で `/extension/plugins/DF_Like/assets/df-like-entry-index.js` が読み込まれているか確認してください。読み込まれていない場合は、拡張アプリの有効化/更新処理を再実行するか、`themes/system/admin/entry/index/v2.html` にDFいいねの管理マーカー付きscriptが追記されているか確認してください。
+「いいね数」列が表示されない場合は、エントリー一覧画面で `/extension/plugins/DF_Like/assets/df-like-entry-index.js` が読み込まれているか確認してください。読み込まれていない場合は、プラグイン内の `template/admin/entry/index-asset.html` が存在し、`ServiceProvider` の `admin-main` 差し込みが動いているか確認してください。
 
 管理画面が白画面になり、PHPエラーログに `Class "Acms\Plugins\DF_Like\..." not found` が出る場合は、DFいいね本体と `extension/acms/GET` / `extension/acms/POST` のラッパーが同じバージョンで配置されているか確認し、`0.7.6` 以降へ更新してください。`0.7.6` 以降は、軽量な `Bootstrap.php` 経由でDFいいね自身のクラスを読み込む保険を持っています。
 
@@ -177,11 +180,14 @@ data-thanks-accent="{thanksAccent}"
 <!-- BEGIN_MODULE DFLikeAnalytics --><!-- END_MODULE DFLikeAnalytics -->
 ```
 
-Twigテンプレートでは、`module('V2_Entry_Body')` の戻り値に追加される `dfLikeAnalytics` を出力します。
+Twigテンプレートでは、専用の `V2_DFLikeAnalytics` を使います。モジュールを呼び出した時だけ解析データを集計します。
 
 ```twig
-{{ entryBody.dfLikeAnalytics|raw }}
+{% set analytics = module('V2_DFLikeAnalytics') %}
+{{ analytics.html|raw }}
 ```
+
+以前の `{{ entryBody.dfLikeAnalytics|raw }}` も互換用に利用できます。`0.7.54` 以降は遅延評価されるため、変数を出力しないページでは解析集計を実行しません。新規設置では専用V2モジュールを推奨します。
 
 以前案内していた `DFLike_Analytics` も互換用に残していますが、a-blog cms のモジュール名解決で `_` が名前空間区切りとして扱われる環境があるため、標準タグは `DFLikeAnalytics` を使ってください。
 

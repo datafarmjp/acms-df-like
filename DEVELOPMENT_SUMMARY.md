@@ -70,6 +70,9 @@ README は導入者向けの使い方、CHANGELOG は変更履歴、このファ
 - README を導入・運用向けに整理しました。
 - CHANGELOG を追加しました。
 - `LikeButtonRendererTest.php` を追加し、マークと初期件数のテンプレート変数スコープ不具合を回帰確認できるようにしました。
+- 通常アクセスではDBスキーマ補修や管理ラッパー同期を繰り返さず、インストール/更新/有効化へ寄せました。
+- Twig解析表示は `V2_DFLikeAnalytics` を推奨し、旧 `entryBody.dfLikeAnalytics` は参照時だけ集計する遅延評価へ変更しました。
+- エントリー一覧V2のJSはsystemテーマへ追記せず、`admin-main` のInjectTemplateで読み込むようにしました。
 
 ## 設計方針
 

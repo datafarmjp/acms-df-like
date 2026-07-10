@@ -4,6 +4,8 @@ namespace Acms\Plugins\DF_Like\Services;
 
 class LikeRepository
 {
+    private static $tablesReady = false;
+
     public static function count(string $objectType, string $objectId): int
     {
         self::ensureTables();
@@ -214,7 +216,7 @@ class LikeRepository
     public static function rebuildCurrentLikesFromLogs(array $filters): array
     {
         self::ensureTables();
-        self::repairTables();
+        LikeSchemaService::ensure();
         [$blogWhere, $blogParams] = self::blogFilterWhere($filters, 'log', 'log_blog_id');
         $where = $blogWhere ? 'WHERE ' . $blogWhere : '';
         $rows = \DB::query([
@@ -391,15 +393,13 @@ class LikeRepository
 
     public static function ensureTables(): void
     {
-        $likeTable = self::table('df_like');
-        $sql = 'SHOW TABLES LIKE :table';
-        if (\DB::query(['sql' => $sql, 'params' => ['table' => $likeTable]], 'one')) {
-            self::repairTables();
-            LikeErrorLogger::ensureTable();
+        if (self::$tablesReady) {
             return;
         }
-        $provider = new \Acms\Plugins\DF_Like\ServiceProvider();
-        $provider->install();
+        if (!LikeSchemaService::isReady()) {
+            LikeSchemaService::ensure();
+        }
+        self::$tablesReady = true;
     }
 
     public static function visitorHashFromCookie(): string
@@ -452,11 +452,6 @@ class LikeRepository
         } catch (\Throwable $e) {
             return 0;
         }
-    }
-
-    private static function repairTables(): void
-    {
-        LikeSchemaService::repair();
     }
 
     private static function activeLikeExists(string $objectType, string $objectId, string $visitorHash): bool

@@ -6,9 +6,9 @@
   </div>
 </header>
 
-<link rel="stylesheet" href="/extension/plugins/DF_Like/assets/df-like-admin.css?v=0.7.53">
+<link rel="stylesheet" href="/extension/plugins/DF_Like/assets/df-like-admin.css?v=0.7.54">
 
-<section class="df-like-admin js-df-like-admin" data-current-version="0.7.53">
+<section class="df-like-admin js-df-like-admin" data-current-version="0.7.54">
   <div class="df-like-admin-sticky-header">
     <div>
       <h1 class="acms-admin-admin-title"><!--T-->DFいいね解析<!--/T--></h1>
@@ -320,10 +320,11 @@
             <p class="df-like-admin-local-status js-df-like-analytics-copy-status" role="status" aria-live="polite"></p>
           </section>
           <section class="df-like-admin-snippet-modal__section">
-            <h2 class="df-like-admin-subtitle"><!--T-->Twig / V2_Entry_Body<!--/T--></h2>
-            <p class="acms-admin-text-muted"><!--T-->Twigでは module('V2_Entry_Body') の戻り値を entryBody とした場合に利用できます。<!--/T--></p>
+            <h2 class="df-like-admin-subtitle"><!--T-->Twig / V2_DFLikeAnalytics<!--/T--></h2>
+            <p class="acms-admin-text-muted"><!--T-->Twigでは専用V2モジュールを呼び出した時だけ解析データを集計します。<!--/T--></p>
             <div class="df-like-admin-manual__code">
-              <code class="js-df-like-analytics-twig-tag">&#123;&#123; entryBody.dfLikeAnalytics|raw &#125;&#125;</code>
+              <code class="js-df-like-analytics-twig-tag">&#123;% set analytics = module('V2_DFLikeAnalytics') %&#125;
+&#123;&#123; analytics.html|raw &#125;&#125;</code>
               <button type="button" class="acms-admin-btn-admin js-df-like-copy-analytics-twig"><!--T-->コピー<!--/T--></button>
             </div>
             <p class="df-like-admin-local-status js-df-like-analytics-twig-copy-status" role="status" aria-live="polite"></p>
@@ -537,8 +538,8 @@
   </section>
 </section>
 
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-api.js?v=0.7.53"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-render.js?v=0.7.53"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-settings.js?v=0.7.53"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin.js?v=0.7.53"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-api.js?v=0.7.54"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-render.js?v=0.7.54"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-settings.js?v=0.7.54"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin.js?v=0.7.54"></script>
 <!-- END_IF -->

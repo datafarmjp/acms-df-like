@@ -2,9 +2,9 @@
 
 namespace Acms\Plugins\DF_Like;
 
-use Acms\Plugins\DF_Like\Services\LikeAnalyticsRenderer;
 use Acms\Plugins\DF_Like\Services\LikeButtonRenderer;
 use Acms\Plugins\DF_Like\Services\LikeBlogContext;
+use Acms\Plugins\DF_Like\Services\LazyLikeAnalyticsHtml;
 
 class Hook
 {
@@ -57,7 +57,7 @@ class Hook
             return;
         }
 
-        $response['dfLikeAnalytics'] = LikeAnalyticsRenderer::renderHtml();
+        $response['dfLikeAnalytics'] = new LazyLikeAnalyticsHtml();
 
         if (empty($response['items']) || !is_array($response['items'])) {
             return;

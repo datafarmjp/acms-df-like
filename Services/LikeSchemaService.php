@@ -4,6 +4,49 @@ namespace Acms\Plugins\DF_Like\Services;
 
 class LikeSchemaService
 {
+    public static function isReady(): bool
+    {
+        $tables = self::tables();
+        $required = [
+            $tables['likes'] => [
+                'like_id', 'like_blog_id', 'like_entry_id', 'like_object_type', 'like_object_id',
+                'like_user_id', 'like_visitor_hash', 'like_ip_hash', 'like_user_agent_hash',
+                'like_created_at', 'like_updated_at',
+            ],
+            $tables['logs'] => [
+                'log_id', 'log_blog_id', 'log_entry_id', 'log_object_type', 'log_object_id',
+                'log_action', 'log_user_id', 'log_visitor_hash', 'log_ip_hash',
+                'log_user_agent_hash', 'log_referer', 'log_created_at',
+            ],
+        ];
+        $where = [];
+        $params = [];
+        $expected = 0;
+        foreach ($required as $tableIndex => $columns) {
+            $tableKey = 'schema_table_' . count($where);
+            $columnKeys = [];
+            $params[$tableKey] = $tableIndex;
+            foreach ($columns as $columnIndex => $column) {
+                $columnKey = $tableKey . '_column_' . $columnIndex;
+                $columnKeys[] = ':' . $columnKey;
+                $params[$columnKey] = $column;
+                $expected++;
+            }
+            $where[] = '(TABLE_NAME = :' . $tableKey . ' AND COLUMN_NAME IN (' . implode(',', $columnKeys) . '))';
+        }
+        try {
+            $count = (int)\DB::query([
+                'sql' => 'SELECT COUNT(*) FROM information_schema.COLUMNS
+                    WHERE TABLE_SCHEMA = DATABASE()
+                    AND (' . implode(' OR ', $where) . ')',
+                'params' => $params,
+            ], 'one');
+            return $count === $expected;
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
     public static function ensure(): void
     {
         $tables = self::tables();
