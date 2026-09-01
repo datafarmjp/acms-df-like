@@ -425,6 +425,23 @@ export DF_RELEASE_PUBLISH_TOKEN="DFリリース管理画面のAPIトークン"
 
 `DF_RELEASE_PUBLISH_ENABLED` が未設定の場合、既存のリリース処理は変わりません。
 
+## 保守とリリース
+
+DF_Like の保守・リリース作業では、次のファイルを確認します。
+
+- [NEXT.md](./NEXT.md): 次に対応する作業、保留中の課題、完了後にCHANGELOGへ移す内容
+- [CHECKLIST.md](./CHECKLIST.md): 共通方針への適合状況とリリース前チェック
+- [RELEASE.md](./RELEASE.md): DF_Like固有のリリース手順
+- [CHANGELOG.md](./CHANGELOG.md): 利用者向けの変更履歴
+
+リリース前の機械的な確認は次で実行できます。
+
+```bash
+tools/release-check.sh X.Y.Z
+```
+
+データファーム製 a-blog cms 拡張アプリの共通公開ルールは、`../_shared/DF_EXTENSION_APP_GUIDELINES.md`、管理画面実装は `../_shared/DF_EXTENSION_APP_ADMIN_TEMPLATE_HOWTO.md`、リリース手順は `../_shared/DF_EXTENSION_APP_RELEASE_GUIDE.md`、共通チェックリストは `../_shared/DF_EXTENSION_APP_CHECKLIST.md` を参照してください。
+
 ## サポートとカスタマイズ
 
 この拡張アプリは、データファームが a-blog cms の運用改善に取り組む中で開発した実用品です。

@@ -38,12 +38,6 @@
     var historyPerPage = 50;
 
     var Admin = window.DFLikeAdmin || {};
-    if (typeof Admin.setupSnippetModals !== 'function') {
-      Admin.setupSnippetModals = setupSnippetModals;
-      Admin.openSnippetModal = openSnippetModal;
-      Admin.closeSnippetModal = closeSnippetModal;
-      Admin.clearSnippetModalStatus = clearSnippetModalStatus;
-    }
     Admin.setupColorInputs(root);
     Admin.setupPlacementSelects(root);
     Admin.setupIconSelects(root);
@@ -51,8 +45,11 @@
     Admin.setupAnalyticsScope(root);
     Admin.setupManualTagCopy(root);
     Admin.setupAnalyticsTagCopy(root);
-    if (typeof Admin.setupSnippetModals === 'function') {
-      Admin.setupSnippetModals(root);
+    if (window.DFLikeAdminSnippetModals && typeof window.DFLikeAdminSnippetModals.createController === 'function') {
+      window.DFLikeAdminSnippetModals.createController({
+        root: root,
+        document: document
+      }).mount();
     }
     Admin.setupNotifyExampleCopy(root);
     Admin.setupFeatureToggle(autoInsertToggle, autoInsertValue);
@@ -131,68 +128,6 @@
     applyPreset('7d', start, end);
     setActivePreset('7d');
     load();
-
-    function setupSnippetModals(modalRoot) {
-      var activeTrigger = null;
-
-      modalRoot.querySelectorAll('.js-df-like-snippet-open').forEach(function(button) {
-        button.addEventListener('click', function() {
-          var key = button.getAttribute('data-df-like-modal') || '';
-          var modal = modalRoot.querySelector('.js-df-like-snippet-modal[data-df-like-modal="' + key + '"]');
-          if (!modal) {
-            return;
-          }
-          activeTrigger = button;
-          openSnippetModal(modal);
-        });
-      });
-
-      modalRoot.querySelectorAll('.js-df-like-snippet-modal').forEach(function(modal) {
-        modal.addEventListener('click', function(event) {
-          if (event.target === modal || event.target.closest('.js-df-like-snippet-close')) {
-            closeSnippetModal(modal, activeTrigger);
-          }
-        });
-      });
-
-      document.addEventListener('keydown', function(event) {
-        if (event.key !== 'Escape') {
-          return;
-        }
-        var modal = modalRoot.querySelector('.js-df-like-snippet-modal:not([hidden])');
-        if (modal) {
-          closeSnippetModal(modal, activeTrigger);
-        }
-      });
-    }
-
-    function openSnippetModal(modal) {
-      clearSnippetModalStatus(modal);
-      modal.hidden = false;
-      modal.classList.remove('out');
-      modal.classList.add('in', 'display');
-      var dialog = modal.querySelector('[role="dialog"]');
-      if (dialog) {
-        dialog.focus();
-      }
-    }
-
-    function closeSnippetModal(modal, trigger) {
-      modal.classList.remove('in', 'display');
-      modal.classList.add('out');
-      modal.hidden = true;
-      if (trigger && typeof trigger.focus === 'function') {
-        trigger.focus();
-      }
-    }
-
-    function clearSnippetModalStatus(modal) {
-      modal.querySelectorAll('.df-like-admin-local-status').forEach(function(statusElement) {
-        statusElement.textContent = '';
-        statusElement.className = statusElement.getAttribute('data-base-class') || 'df-like-admin-local-status';
-        statusElement.removeAttribute('data-base-class');
-      });
-    }
 
     function load(silent) {
       if (!silent) {

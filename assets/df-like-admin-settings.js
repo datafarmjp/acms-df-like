@@ -448,68 +448,6 @@
     Admin.setupCopyButton(root, '.js-df-like-copy-ranking-v2', '.js-df-like-ranking-v2-tag', root.querySelector('.js-df-like-ranking-v2-copy-status'), 'Twig/V2用のランキング表示コードをコピーしました。', 'Twig/V2用のランキング表示コードをコピーできませんでした。');
   };
 
-  Admin.setupSnippetModals = function(root) {
-    var activeTrigger = null;
-
-    root.querySelectorAll('.js-df-like-snippet-open').forEach(function(button) {
-      button.addEventListener('click', function() {
-        var key = button.getAttribute('data-df-like-modal') || '';
-        var modal = root.querySelector('.js-df-like-snippet-modal[data-df-like-modal="' + key + '"]');
-        if (!modal) {
-          return;
-        }
-        activeTrigger = button;
-        Admin.openSnippetModal(modal);
-      });
-    });
-
-    root.querySelectorAll('.js-df-like-snippet-modal').forEach(function(modal) {
-      modal.addEventListener('click', function(event) {
-        if (event.target === modal || event.target.closest('.js-df-like-snippet-close')) {
-          Admin.closeSnippetModal(modal, activeTrigger);
-        }
-      });
-    });
-
-    document.addEventListener('keydown', function(event) {
-      if (event.key !== 'Escape') {
-        return;
-      }
-      var modal = root.querySelector('.js-df-like-snippet-modal:not([hidden])');
-      if (modal) {
-        Admin.closeSnippetModal(modal, activeTrigger);
-      }
-    });
-  };
-
-  Admin.openSnippetModal = function(modal) {
-    Admin.clearSnippetModalStatus(modal);
-    modal.hidden = false;
-    modal.classList.remove('out');
-    modal.classList.add('in', 'display');
-    var dialog = modal.querySelector('[role="dialog"]');
-    if (dialog) {
-      dialog.focus();
-    }
-  };
-
-  Admin.closeSnippetModal = function(modal, trigger) {
-    modal.classList.remove('in', 'display');
-    modal.classList.add('out');
-    modal.hidden = true;
-    if (trigger && typeof trigger.focus === 'function') {
-      trigger.focus();
-    }
-  };
-
-  Admin.clearSnippetModalStatus = function(modal) {
-    modal.querySelectorAll('.df-like-admin-local-status').forEach(function(status) {
-      status.textContent = '';
-      status.className = status.getAttribute('data-base-class') || 'df-like-admin-local-status';
-      status.removeAttribute('data-base-class');
-    });
-  };
-
   Admin.setupCopyButton = function(root, buttonSelector, textSelector, status, successMessage, failureMessage) {
     var button = root.querySelector(buttonSelector);
     var tag = root.querySelector(textSelector);

@@ -2,6 +2,17 @@
 
 DF_Like の主な変更履歴です。
 
+<a id="v0-7-55"></a>
+## [0.7.55] - 2026-07-16
+
+### Changed
+
+- 管理画面の設置方法モーダル処理を `df-like-admin-snippet-modals.js` へ分離し、メインJSは初期化だけを担当するようにしました。
+- DF拡張アプリ共通ガイドに合わせて、`RELEASE.md`、`CHECKLIST.md`、`tools/release-check.sh` を追加しました。
+- READMEに、`NEXT.md`、`CHECKLIST.md`、`RELEASE.md`、`CHANGELOG.md` を使った保守・リリース導線を追記しました。
+- `tools/release.sh` から `tools/release-check.sh` を実行し、リリース前確認を共通化しました。
+- プラグイン本体バージョンと管理画面/フロントアセットのクエリを `0.7.55` に更新しました。
+
 <a id="v0-7-54"></a>
 ## [0.7.54] - 2026-07-10
 

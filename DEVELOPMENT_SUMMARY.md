@@ -4,6 +4,8 @@ DFいいねは、a-blog cms のエントリーにいいね機能を追加し、�
 
 README は導入者向けの使い方、CHANGELOG は変更履歴、このファイルは開発経緯と公開準備のための整理メモです。
 
+保守とリリースの実務は `NEXT.md`、`CHECKLIST.md`、`RELEASE.md`、`CHANGELOG.md` を確認します。リリース前の機械的な確認は `tools/release-check.sh VERSION` で実行します。
+
 ## ここまで実装したこと
 
 ### 基本のいいね機能
@@ -128,9 +130,11 @@ find . -name '*.php' -print
 node --check assets/df-like.js
 node --check assets/df-like-admin.js
 node --check assets/df-like-admin-settings.js
+node --check assets/df-like-admin-snippet-modals.js
 node --check assets/df-like-admin-render.js
 node --check assets/df-like-admin-api.js
 node --check assets/df-like-entry-index.js
+tools/release-check.sh 0.7.55
 /Applications/MAMP/bin/php/php8.2.26/bin/php tests/LikeButtonRendererTest.php
 ```
 

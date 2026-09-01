@@ -12,6 +12,7 @@ Example:
 This script:
   - verifies the worktree is clean
   - verifies ServiceProvider.php contains the requested version
+  - runs tools/release-check.sh VERSION when available
   - creates /private/tmp/DF_Like-vVERSION.zip
   - creates and pushes tag vVERSION when missing
   - creates GitHub Release vVERSION with the ZIP asset
@@ -65,6 +66,10 @@ fi
 if ! grep -q "const VERSION = '$VERSION';" ServiceProvider.php; then
   echo "ServiceProvider.php does not contain const VERSION = '$VERSION';" >&2
   exit 1
+fi
+
+if [ -f tools/release-check.sh ]; then
+  bash tools/release-check.sh "$VERSION"
 fi
 
 CHANGELOG_ANCHOR="v${VERSION//./-}"
