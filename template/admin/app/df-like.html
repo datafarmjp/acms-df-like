@@ -6,9 +6,9 @@
   </div>
 </header>
 
-<link rel="stylesheet" href="/extension/plugins/DF_Like/assets/df-like-admin.css?v=0.7.55">
+<link rel="stylesheet" href="/extension/plugins/DF_Like/assets/df-like-admin.css?v=0.8.1">
 
-<section class="df-like-admin js-df-like-admin" data-current-version="0.7.55">
+<section class="df-like-admin js-df-like-admin" data-current-version="0.8.1">
   <div class="df-like-admin-sticky-header">
     <div>
       <h1 class="acms-admin-admin-title"><!--T-->DFいいね解析<!--/T--></h1>
@@ -78,6 +78,28 @@
             <option value="right"{df_like_auto_insert_bottom:selected#right}><!--T-->右<!--/T--></option>
           </select>
           <input type="hidden" name="config[]" value="df_like_auto_insert_bottom">
+        </td>
+      </tr>
+      <tr>
+        <th><!--T-->カテゴリ別の表示位置<!--/T--></th>
+        <td>
+          <div class="df-like-admin-categories js-df-like-category-placements">
+            <p class="acms-admin-text-muted" id="df-like-category-placement-help"><!--T-->本文上・本文下それぞれに、記事のメインカテゴリ → 親カテゴリ → ブログの基本設定の順で適用します。「継承する」は親カテゴリの設定を使い、親にも設定がなければ上のブログ設定を使います。<!--/T--></p>
+            <p class="acms-admin-text-muted"><!--T-->「記事詳細へ自動表示」が有効な場合に適用されます。サブカテゴリは判定に含みません。<!--/T--></p>
+            <textarea name="df_like_category_placements" class="js-df-like-category-placements-value" hidden>{df_like_category_placements}[escape]</textarea>
+            <input type="hidden" name="config[]" value="df_like_category_placements">
+            <div class="df-like-admin-categories__rows js-df-like-category-placement-rows"></div>
+            <p class="acms-admin-text-muted js-df-like-category-placement-empty" hidden><!--T-->カテゴリ別の設定はありません。すべてブログの基本設定を使います。<!--/T--></p>
+            <div class="df-like-admin-categories__add">
+              <select class="js-df-like-category-select" aria-label="表示位置を設定するカテゴリ" aria-describedby="df-like-category-placement-help" disabled>
+                <option value=""><!--T-->カテゴリを読み込んでいます…<!--/T--></option>
+              </select>
+              <button type="button" class="acms-admin-btn-admin js-df-like-category-add" disabled><!--T-->カテゴリ設定を追加<!--/T--></button>
+              <button type="button" class="acms-admin-btn-admin js-df-like-category-retry" hidden><!--T-->再読み込み<!--/T--></button>
+            </div>
+            <p class="df-like-admin-local-status js-df-like-category-status" role="status" aria-live="polite"></p>
+            <noscript><p class="acms-admin-text-muted"><!--T-->カテゴリ別設定の編集にはJavaScriptが必要です。保存済みのカテゴリ別設定は維持されます。<!--/T--></p></noscript>
+          </div>
         </td>
       </tr>
       <tr>
@@ -538,9 +560,10 @@
   </section>
 </section>
 
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-api.js?v=0.7.55"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-render.js?v=0.7.55"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-settings.js?v=0.7.55"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin-snippet-modals.js?v=0.7.55"></script>
-<script src="/extension/plugins/DF_Like/assets/df-like-admin.js?v=0.7.55"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-api.js?v=0.8.1"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-render.js?v=0.8.1"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-settings.js?v=0.8.1"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-categories.js?v=0.8.1"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin-snippet-modals.js?v=0.8.1"></script>
+<script src="/extension/plugins/DF_Like/assets/df-like-admin.js?v=0.8.1"></script>
 <!-- END_IF -->

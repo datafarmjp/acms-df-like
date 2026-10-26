@@ -22,8 +22,19 @@ class LikeImportService
 
         foreach ($rows as $line => $row) {
             $summary['processed']++;
+            $db = null;
+            $transactionStarted = false;
+            $counts = ['imported_logs' => 0, 'imported_likes' => 0, 'removed_likes' => 0, 'skipped' => 0];
             try {
-                $data = self::normalizeImportRow($row, $line, $importedAt);
+                if (!$dryRun) {
+                    $db = \DB::singleton(dsn());
+                    $db->beginTransaction();
+                    $transactionStarted = true;
+                }
+                // Lock the real entry until commit: concurrent imports for this entry
+                // serialize, and its blog cannot change between authorization and write.
+                $data = self::normalizeImportRow($row, $line, $importedAt, !$dryRun);
+                self::assertTargetOwnership($data);
                 $logExists = self::importLogExists($data);
                 $active = self::activeLikeExists($data);
 
@@ -32,35 +43,47 @@ class LikeImportService
                 if ($data['action'] === 'like' && !$active) {
                     $created = false;
                     if (!$dryRun) {
-                        $created = self::insertImportLike($data, $line);
+                        $created = self::insertImportLike($data);
                     }
                     if ($dryRun || $created) {
-                        $summary['imported_likes']++;
+                        $counts['imported_likes']++;
                     } else {
-                        $summary['skipped']++;
+                        $counts['skipped']++;
                     }
                 } elseif ($data['action'] === 'unlike' && $active) {
                     if (!$dryRun) {
                         self::deleteImportLike($data);
                     }
-                    $summary['removed_likes']++;
+                    $counts['removed_likes']++;
                 }
 
                 if ($logExists) {
-                    $summary['skipped']++;
-                    continue;
+                    $counts['skipped']++;
+                } else {
+                    if (!$dryRun) {
+                        self::insertImportLog($data);
+                    }
+                    $counts['imported_logs']++;
                 }
-                if (!$dryRun) {
-                    self::insertImportLog($data);
+                if ($transactionStarted) {
+                    $db->commit();
+                    $transactionStarted = false;
                 }
-                $summary['imported_logs']++;
+                foreach ($counts as $key => $count) {
+                    $summary[$key] += $count;
+                }
             } catch (\Throwable $e) {
+                if ($transactionStarted) {
+                    $db->rollBack();
+                }
                 $summary['failed']++;
-                LikeErrorLogger::log('import', $e->getMessage(), [
-                    'line' => $line,
-                    'entry_id' => isset($row['entry_id']) ? (int)$row['entry_id'] : 0,
-                    'action' => (string)($row['action'] ?? ''),
-                ]);
+                if (!$dryRun) {
+                    LikeErrorLogger::log('import', $e->getMessage(), [
+                        'line' => $line,
+                        'entry_id' => isset($row['entry_id']) ? (int)$row['entry_id'] : 0,
+                        'action' => (string)($row['action'] ?? ''),
+                    ]);
+                }
                 if (count($summary['errors']) < 100) {
                     $summary['errors'][] = [
                         'line' => $line,
@@ -73,7 +96,7 @@ class LikeImportService
         return $summary;
     }
 
-    private static function normalizeImportRow(array $row, int $line = 0, string $importedAt = ''): array
+    private static function normalizeImportRow(array $row, int $line = 0, string $importedAt = '', bool $lockEntry = false): array
     {
         $entryId = (int)self::normalizeCell($row['entry_id'] ?? '');
         if ($entryId <= 0) {
@@ -98,15 +121,21 @@ class LikeImportService
         if ($createdAt === '') {
             $createdAt = $importedAt !== '' ? $importedAt : date('Y-m-d H:i:s');
         }
-        $blogId = (int)self::normalizeCell($row['blog_id'] ?? '');
-        if ($blogId <= 0 && class_exists('\ACMS_RAM') && method_exists('\ACMS_RAM', 'entryBlog')) {
-            $blogId = (int)\ACMS_RAM::entryBlog($entryId);
+        $entry = \DB::query([
+            'sql' => 'SELECT entry_blog_id FROM `' . LikeRepository::table('entry') . '`
+                WHERE entry_id = :entry_id' . ($lockEntry ? ' FOR UPDATE' : ''),
+            'params' => ['entry_id' => $entryId],
+        ], 'row');
+        if (!is_array($entry) || (int)($entry['entry_blog_id'] ?? 0) <= 0) {
+            throw new \RuntimeException('entry_id の記事が存在しないか、取得できません。');
         }
-        if ($blogId <= 0 && defined('BID')) {
-            $blogId = (int)BID;
+        $blogId = (int)$entry['entry_blog_id'];
+        $specifiedBlog = self::normalizeCell($row['blog_id'] ?? '');
+        if ($specifiedBlog !== '' && (!ctype_digit($specifiedBlog) || (int)$specifiedBlog !== $blogId)) {
+            throw new \RuntimeException('blog_id が記事の所属ブログと一致しません。');
         }
-        if ($blogId <= 0) {
-            throw new \RuntimeException('blog_id を補完できません。');
+        if (!self::canImportBlog($blogId)) {
+            throw new \RuntimeException('対象ブログのいいね履歴をインポートする権限がありません。');
         }
         $objectType = self::normalizeCell($row['object_type'] ?? 'entry');
         if (!preg_match('/^[a-zA-Z0-9_-]{1,32}$/', $objectType)) {
@@ -116,18 +145,30 @@ class LikeImportService
         if ($objectId === '') {
             $objectId = (string)$entryId;
         }
+        // Entry targets use the same canonical ID as the front-end endpoint. Custom
+        // object types remain supported but cannot impersonate an existing target.
+        if (strcasecmp($objectType, 'entry') === 0) {
+            $objectType = 'entry';
+            if ($objectId !== (string)$entryId) {
+                throw new \RuntimeException('entry の object_id は entry_id と一致させてください。');
+            }
+        }
+        if (mb_strlen($objectId) > 64) {
+            throw new \RuntimeException('object_id は64文字以内で指定してください。');
+        }
         $userId = self::normalizeCell($row['user_id'] ?? '');
 
         return [
             'blog_id' => $blogId,
             'entry_id' => $entryId,
             'object_type' => $objectType,
-            'object_id' => mb_substr($objectId, 0, 64),
+            'object_id' => $objectId,
             'action' => $action,
             'user_id' => $userId !== '' ? (int)$userId : 0,
             'visitor_hash' => hash('sha256', $visitorKey),
             'referer' => self::normalizeCell($row['referer'] ?? ''),
             'created_at' => $createdAt,
+            'created_at_supplied' => $createdAtRaw !== '',
         ];
     }
 
@@ -164,45 +205,96 @@ class LikeImportService
         return $value === null ? '' : $value;
     }
 
+    private static function canImportBlog(int $blogId): bool
+    {
+        if (function_exists('sessionWithAdministration') && \sessionWithAdministration($blogId)) {
+            return true;
+        }
+        return function_exists('roleAvailableUser') && \roleAvailableUser()
+            && function_exists('roleAuthorization') && \roleAuthorization('config_edit', $blogId);
+    }
+
+    private static function assertTargetOwnership(array $data): void
+    {
+        // Target keys are globally unique in df_like, including custom object types.
+        // A forged entry_id must not grant access to another entry's existing target.
+        foreach (['df_like' => 'like', 'df_like_log' => 'log'] as $table => $prefix) {
+            if (self::countRows([
+                'sql' => 'SELECT COUNT(*) FROM `' . LikeRepository::table($table) . '`
+                    WHERE ' . $prefix . '_object_type = :object_type
+                    AND ' . $prefix . '_object_id = :object_id
+                    AND (' . $prefix . '_blog_id <> :blog_id OR ' . $prefix . '_entry_id <> :entry_id)',
+                'params' => [
+                    'object_type' => $data['object_type'],
+                    'object_id' => $data['object_id'],
+                    'blog_id' => $data['blog_id'],
+                    'entry_id' => $data['entry_id'],
+                ],
+            ]) > 0) {
+                throw new \RuntimeException('object_type / object_id が別の記事・ブログの履歴と重複しています。');
+            }
+        }
+    }
+
+    private static function countRows(array $query): int
+    {
+        $count = \DB::query($query, 'one');
+        if ($count === false || $count === null) {
+            throw new \RuntimeException('既存のいいね・履歴を確認できませんでした。');
+        }
+        return (int)$count;
+    }
+
     private static function importLogExists(array $data): bool
     {
-        return (bool)\DB::query([
-            'sql' => 'SELECT log_id FROM `' . LikeRepository::table('df_like_log') . '`
-                WHERE log_object_type = :object_type
+        $params = [
+            'blog_id' => $data['blog_id'],
+            'entry_id' => $data['entry_id'],
+            'object_type' => $data['object_type'],
+            'object_id' => $data['object_id'],
+            'visitor_hash' => $data['visitor_hash'],
+            'action' => $data['action'],
+        ];
+        $dateCondition = '';
+        if ($data['created_at_supplied']) {
+            $dateCondition = ' AND log_created_at = :created_at';
+            $params['created_at'] = $data['created_at'];
+        }
+        // Without a supplied date, target + visitor + action identifies the event.
+        // Using the import clock here would create a new history row on every retry.
+        return self::countRows([
+            'sql' => 'SELECT COUNT(*) FROM `' . LikeRepository::table('df_like_log') . '`
+                WHERE log_blog_id = :blog_id AND log_entry_id = :entry_id
+                AND log_object_type = :object_type
                 AND log_object_id = :object_id
                 AND log_visitor_hash = :visitor_hash
-                AND log_action = :action
-                AND log_created_at = :created_at
-                LIMIT 1',
-            'params' => [
-                'object_type' => $data['object_type'],
-                'object_id' => $data['object_id'],
-                'visitor_hash' => $data['visitor_hash'],
-                'action' => $data['action'],
-                'created_at' => $data['created_at'],
-            ],
-        ], 'one');
+                AND log_action = :action' . $dateCondition,
+            'params' => $params,
+        ]) > 0;
     }
 
     private static function activeLikeExists(array $data): bool
     {
-        return (bool)\DB::query([
-            'sql' => 'SELECT like_id FROM `' . LikeRepository::table('df_like') . '`
-                WHERE like_object_type = :object_type
+        return self::countRows([
+            'sql' => 'SELECT COUNT(*) FROM `' . LikeRepository::table('df_like') . '`
+                WHERE like_blog_id = :blog_id AND like_entry_id = :entry_id
+                AND like_object_type = :object_type
                 AND like_object_id = :object_id
-                AND like_visitor_hash = :visitor_hash
-                LIMIT 1',
+                AND like_visitor_hash = :visitor_hash',
             'params' => [
+                'blog_id' => $data['blog_id'],
+                'entry_id' => $data['entry_id'],
                 'object_type' => $data['object_type'],
                 'object_id' => $data['object_id'],
                 'visitor_hash' => $data['visitor_hash'],
             ],
-        ], 'one');
+        ]) > 0;
     }
 
     private static function insertImportLog(array $data): void
     {
-        \DB::query([
+        unset($data['created_at_supplied']);
+        $result = \DB::query([
             'sql' => 'INSERT INTO `' . LikeRepository::table('df_like_log') . '` (
                 log_blog_id, log_entry_id, log_object_type, log_object_id, log_action, log_user_id,
                 log_visitor_hash, log_ip_hash, log_user_agent_hash, log_referer, log_created_at
@@ -215,41 +307,43 @@ class LikeImportService
                 'user_agent_hash' => '',
             ]),
         ], 'exec');
+        if ($result === false) {
+            throw new \RuntimeException('いいね履歴を保存できませんでした。');
+        }
     }
 
-    private static function insertImportLike(array $data, int $line): bool
+    private static function insertImportLike(array $data): bool
     {
-        try {
-            return LikeRepository::insertCurrentLike(array_merge($data, [
-                'ip_hash' => '',
-                'user_agent_hash' => '',
-            ]));
-        } catch (\Throwable $e) {
-            LikeErrorLogger::log('import', $e->getMessage(), [
-                'line' => $line,
-                'blog_id' => (int)$data['blog_id'],
-                'entry_id' => (int)$data['entry_id'],
-                'object_type' => (string)$data['object_type'],
-                'object_id' => (string)$data['object_id'],
-                'visitor_hash' => substr((string)$data['visitor_hash'], 0, 10),
-            ]);
-            throw $e;
+        $created = LikeRepository::insertCurrentLike(array_merge($data, [
+            'ip_hash' => '',
+            'user_agent_hash' => '',
+        ]));
+        // The repository returns false when another writer already inserted it.
+        // Recheck the authorized scope before treating that race as a safe skip.
+        if (!$created && !self::activeLikeExists($data)) {
+            throw new \RuntimeException('現在いいねを作成できませんでした。');
         }
+        return $created;
     }
 
     private static function deleteImportLike(array $data): void
     {
-        \DB::query([
+        $result = \DB::query([
             'sql' => 'DELETE FROM `' . LikeRepository::table('df_like') . '`
-                WHERE like_object_type = :object_type
+                WHERE like_blog_id = :blog_id AND like_entry_id = :entry_id
+                AND like_object_type = :object_type
                 AND like_object_id = :object_id
                 AND like_visitor_hash = :visitor_hash',
             'params' => [
+                'blog_id' => $data['blog_id'],
+                'entry_id' => $data['entry_id'],
                 'object_type' => $data['object_type'],
                 'object_id' => $data['object_id'],
                 'visitor_hash' => $data['visitor_hash'],
             ],
         ], 'exec');
+        if ($result === false) {
+            throw new \RuntimeException('現在いいねを削除できませんでした。');
+        }
     }
-
 }

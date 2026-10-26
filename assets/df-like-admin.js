@@ -40,6 +40,7 @@
     var Admin = window.DFLikeAdmin || {};
     Admin.setupColorInputs(root);
     Admin.setupPlacementSelects(root);
+    Admin.setupCategoryPlacements(root);
     Admin.setupIconSelects(root);
     Admin.setupRadiusInputs(root);
     Admin.setupAnalyticsScope(root);

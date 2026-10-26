@@ -4,6 +4,7 @@ namespace Acms\Plugins\DF_Like;
 
 use Acms\Plugins\DF_Like\Services\LikeButtonRenderer;
 use Acms\Plugins\DF_Like\Services\LikeBlogContext;
+use Acms\Plugins\DF_Like\Services\LikePlacementResolver;
 use Acms\Plugins\DF_Like\Services\LazyLikeAnalyticsHtml;
 
 class Hook
@@ -112,8 +113,9 @@ class Hook
      */
     private function autoInsertButtons(int $entryId, int $blogId): array
     {
-        $top = $this->autoInsertPlacement('top', $blogId);
-        $bottom = $this->autoInsertPlacement('bottom', $blogId);
+        $placements = LikePlacementResolver::resolve($entryId, $blogId);
+        $top = $placements['top'];
+        $bottom = $placements['bottom'];
         $topKey = $blogId . ':' . $entryId . ':top';
         $bottomKey = $blogId . ':' . $entryId . ':bottom';
 
@@ -135,28 +137,6 @@ class Hook
             'top' => $topButton,
             'bottom' => $bottomButton,
         ];
-    }
-
-    private function autoInsertPlacement(string $position, int $blogId): string
-    {
-        $value = $this->configValue('df_like_auto_insert_' . $position, $blogId);
-        if ($value !== '') {
-            return $this->placementChoice($value, $position === 'top' ? 'none' : 'left');
-        }
-
-        $legacy = $this->configValue('df_like_auto_insert_position', $blogId) ?: 'after';
-        if ($position === 'top') {
-            return in_array($legacy, ['before', 'both'], true) ? 'left' : 'none';
-        }
-        if ($legacy === 'before') {
-            return 'none';
-        }
-        return in_array($legacy, ['after', 'both'], true) ? 'left' : 'left';
-    }
-
-    private function placementChoice(string $value, string $fallback): string
-    {
-        return in_array($value, ['none', 'left', 'center', 'right'], true) ? $value : $fallback;
     }
 
     private function configValue(string $key, int $blogId): string

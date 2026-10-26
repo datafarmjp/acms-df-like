@@ -54,6 +54,10 @@ require_file CHECKLIST.md
 require_file NEXT.md
 require_file tools/release.sh
 require_file tools/release-json.php
+require_file Services/LikePlacementResolver.php
+require_file POST/DFLikeCategoryOptions.php
+require_file template/post/DFLikeCategoryOptions.php
+require_file assets/df-like-admin-categories.js
 
 [ -n "$PHP_BIN" ] && [ -x "$PHP_BIN" ] || fail "php command was not found."
 command -v node >/dev/null 2>&1 || fail "node command was not found."
@@ -64,6 +68,7 @@ require_grep "id=\"$ANCHOR\"" CHANGELOG.md
 require_grep "data-current-version=\"$VERSION\"" template/admin/app/df-like.html
 require_grep "df-like-admin.css?v=$VERSION" template/admin/app/df-like.html
 require_grep "df-like-admin.js?v=$VERSION" template/admin/app/df-like.html
+require_grep "df-like-admin-categories.js?v=$VERSION" template/admin/app/df-like.html
 require_grep "df-like-admin-snippet-modals.js?v=$VERSION" template/admin/app/df-like.html
 require_grep "df-like-entry-index.js?v=$VERSION" template/admin/entry/index-asset.html
 require_grep "df-like.js?v=$VERSION" Services/LikeButtonRenderer.php

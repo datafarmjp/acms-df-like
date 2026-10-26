@@ -11,7 +11,7 @@ use Acms\Services\Common\InjectTemplate;
 
 class ServiceProvider extends ACMS_App
 {
-    const VERSION = '0.7.55';
+    const VERSION = '0.8.1';
 
     private static $postWrappers = [
         'DFLikeToggle.php',
@@ -22,6 +22,7 @@ class ServiceProvider extends ACMS_App
         'DFLikeDeleteLike.php',
         'DFLikeEntryCounts.php',
         'DFLikeFormOptions.php',
+        'DFLikeCategoryOptions.php',
         'DFLikeNotificationTest.php',
         'DFLikeImportCsv.php',
         'DFLikeRebuildCurrentLikes.php',

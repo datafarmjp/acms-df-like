@@ -14,7 +14,16 @@ use Acms\Plugins\DF_Like\Services\LikeBlogContext;
 use Acms\Plugins\DF_Like\Services\LikeButtonRenderer;
 use Acms\Plugins\DF_Like\Services\LikeRepository;
 
-require_once dirname(__DIR__, 4) . '/php/standalone.php';
+$isolated = getenv('DF_PLUGIN_TEST_DDEV') === '1';
+if ($isolated) {
+    require dirname(__DIR__, 2) . '/_shared/tests/support/isolated-cms.php';
+    $testPdo->exec("INSERT INTO acms_entry (entry_id, entry_blog_id, entry_status) VALUES (3,1,'open')");
+    $testPdo->prepare('INSERT INTO acms_app (app_blog_id, app_name, app_status) VALUES (1,?,?)')->execute(['Acms\\Plugins\\DF_Like\\ServiceProvider','on']);
+    $testPdo->exec("INSERT INTO acms_config (config_blog_id,config_key,config_value) VALUES (1,'df_like_icon','good')");
+    LikeRepository::ensureTables();
+} else {
+    require_once dirname(__DIR__, 4) . '/php/standalone.php';
+}
 
 function df_like_assert_true(bool $condition, string $message): void
 {
@@ -72,4 +81,5 @@ function df_like_run_renderer_test(): bool
     return true;
 }
 
+if ($isolated) { exit(df_like_run_renderer_test() ? 0 : 1); }
 acmsStandAloneRun('df_like_run_renderer_test');

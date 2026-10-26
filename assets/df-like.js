@@ -2,9 +2,18 @@
   'use strict';
 
   if (window.dfLikeInitialized) {
+    if (typeof window.dfLikeSyncButtons === 'function') {
+      window.dfLikeSyncButtons(document);
+    }
     return;
   }
   window.dfLikeInitialized = true;
+
+  var buttonStates = new WeakMap();
+  var statusRequests = Object.create(null);
+  var revisions = Object.create(null);
+  var toggling = Object.create(null);
+  window.dfLikeSyncButtons = syncButtons;
 
   document.addEventListener('click', function(event) {
     var button = event.target.closest('.js-df-like-button');
@@ -15,14 +24,39 @@
     toggle(button);
   });
 
+  document.addEventListener('htmx:afterSwap', function(event) {
+    syncButtons(event.detail && event.detail.target ? event.detail.target : event.target);
+  });
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', syncInitialButtons);
+    document.addEventListener('DOMContentLoaded', function() {
+      syncButtons(document);
+    });
   } else {
-    syncInitialButtons();
+    syncButtons(document);
   }
 
-  function syncInitialButtons() {
-    groupedButtons().forEach(function(group) {
+  function syncButtons(scope) {
+    groupedButtons(scope).forEach(function(group) {
+      var key = buttonKey(group[0]);
+      if (toggling[key]) {
+        setButtonsDisabled(group, true);
+        return;
+      }
+      var revision = revisions[key] || 0;
+      var pending = statusRequests[key];
+      if (pending && pending.revision === revision) {
+        group.forEach(function(button) {
+          buttonStates.set(button, pending);
+          pending.buttons.push(button);
+        });
+        return;
+      }
+      var request = {revision: revision, buttons: group.slice()};
+      statusRequests[key] = request;
+      group.forEach(function(button) {
+        buttonStates.set(button, request);
+      });
       postJsonWithFallback(
         ['ACMS_POST_DFLikeStatus', 'ACMS_POST_DF_Like_DFLikeStatus'],
         function(action) {
@@ -39,7 +73,8 @@
         'いいね状態を確認できませんでした。'
       )
         .then(function(json) {
-          if (json && json.status === 'success') {
+          // A status read begun before a click must not replace that click's result.
+          if (json && json.status === 'success' && !toggling[key] && (revisions[key] || 0) === revision) {
             updateButtons(group[0], json);
           }
         })
@@ -47,14 +82,27 @@
           if (window.console && console.warn) {
             console.warn(error && error.message ? error.message : error);
           }
+        })
+        .finally(function() {
+          request.buttons.forEach(function(button) {
+            if (buttonStates.get(button) === request) {
+              buttonStates.delete(button);
+            }
+          });
+          if (statusRequests[key] === request) {
+            delete statusRequests[key];
+          }
         });
     });
   }
 
   function toggle(button) {
-    if (button.disabled) {
+    var key = buttonKey(button);
+    if (button.disabled || toggling[key]) {
       return;
     }
+    toggling[key] = true;
+    revisions[key] = (revisions[key] || 0) + 1;
     var buttons = relatedButtons(button);
     setButtonsDisabled(buttons, true);
 
@@ -88,7 +136,8 @@
         }
       })
       .finally(function() {
-        setButtonsDisabled(buttons, false);
+        delete toggling[key];
+        setButtonsDisabled(buttons.concat(relatedButtons(button)), false);
       });
   }
 
@@ -158,6 +207,7 @@
 
   function updateButtons(sourceButton, json) {
     relatedButtons(sourceButton).forEach(function(button) {
+      buttonStates.set(button, true);
       button.classList.toggle('is-liked', !!json.liked);
       button.setAttribute('aria-pressed', json.liked ? 'true' : 'false');
       button.removeAttribute('data-error');
@@ -377,10 +427,22 @@
     return Array.prototype.slice.call(document.querySelectorAll(selector));
   }
 
-  function groupedButtons() {
-    var groups = {};
-    Array.prototype.slice.call(document.querySelectorAll('.js-df-like-button')).forEach(function(button) {
-      var key = (button.getAttribute('data-object-type') || 'entry') + ':' + (button.getAttribute('data-object-id') || '');
+  function buttonKey(button) {
+    return (button.getAttribute('data-object-type') || 'entry') + ':' + (button.getAttribute('data-object-id') || '');
+  }
+
+  function groupedButtons(scope) {
+    scope = scope && typeof scope.querySelectorAll === 'function' ? scope : document;
+    var buttons = Array.prototype.slice.call(scope.querySelectorAll('.js-df-like-button'));
+    if (typeof scope.matches === 'function' && scope.matches('.js-df-like-button')) {
+      buttons.unshift(scope);
+    }
+    var groups = Object.create(null);
+    buttons.forEach(function(button) {
+      if (buttonStates.has(button)) {
+        return;
+      }
+      var key = buttonKey(button);
       if (!groups[key]) {
         groups[key] = [];
       }

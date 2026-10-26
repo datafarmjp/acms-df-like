@@ -68,7 +68,9 @@ class LikeRepository
             ], 'exec');
             $changed = self::rowCount() > 0;
         } else {
-            \DB::query([
+            $likeParams = $params;
+            unset($likeParams['referer']);
+            $inserted = \DB::query([
                 'sql' => 'INSERT IGNORE INTO `' . self::table('df_like') . '` (
                     like_blog_id, like_entry_id, like_object_type, like_object_id, like_user_id,
                     like_visitor_hash, like_ip_hash, like_user_agent_hash, like_created_at, like_updated_at
@@ -76,8 +78,11 @@ class LikeRepository
                     :blog_id, :entry_id, :object_type, :object_id, :user_id,
                     :visitor_hash, :ip_hash, :user_agent_hash, :now, :now
                 )',
-                'params' => $params,
+                'params' => $likeParams,
             ], 'exec');
+            if ($inserted === false) {
+                throw new \RuntimeException('いいねを保存できませんでした。もう一度お試しください。');
+            }
             $changed = self::rowCount() > 0;
         }
 

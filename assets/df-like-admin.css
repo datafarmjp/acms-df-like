@@ -78,6 +78,73 @@
   margin-bottom: 16px;
 }
 
+.df-like-admin-categories [hidden] {
+  display: none !important;
+}
+
+.df-like-admin-categories__rows {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.df-like-admin-categories__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px;
+  border: 1px solid #d8dee4;
+  border-radius: 6px;
+  background: #fbfcfd;
+}
+
+.df-like-admin-categories__name {
+  flex: 1 1 180px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: bold;
+}
+
+.df-like-admin-categories__position {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.df-like-admin-categories__position select {
+  min-width: 110px;
+}
+
+.df-like-admin-categories__add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.df-like-admin-categories__add select {
+  max-width: 100%;
+  min-width: 180px;
+}
+
+.df-like-admin-categories .is-error {
+  color: #b42318;
+}
+
+@media (max-width: 640px) {
+  .df-like-admin-categories__name {
+    flex-basis: 100%;
+  }
+
+  .df-like-admin-categories__add select {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
 .df-like-admin-range,
 .df-like-admin-copy-block,
 .df-like-admin-form-select,
