@@ -4,6 +4,7 @@ namespace Acms\Plugins\DF_Like\POST;
 
 use ACMS_POST;
 use Acms\Plugins\DF_Like\Services\LikeBlogContext;
+use Acms\Plugins\DF_Like\Services\LikeClientIp;
 use Acms\Plugins\DF_Like\Services\LikeErrorLogger;
 use Acms\Plugins\DF_Like\Services\LikeNotification;
 use Acms\Plugins\DF_Like\Services\LikeRepository;
@@ -88,10 +89,7 @@ class DFLikeToggle extends ACMS_POST
 
     private function clientIp(): string
     {
-        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $parts = explode(',', (string)$_SERVER['HTTP_X_FORWARDED_FOR']);
-            return trim($parts[0]);
-        }
-        return isset($_SERVER['REMOTE_ADDR']) ? (string)$_SERVER['REMOTE_ADDR'] : '';
+        $trustedProxies = defined('DF_LIKE_TRUSTED_PROXIES') ? constant('DF_LIKE_TRUSTED_PROXIES') : [];
+        return LikeClientIp::resolve($_SERVER, is_array($trustedProxies) ? $trustedProxies : []);
     }
 }

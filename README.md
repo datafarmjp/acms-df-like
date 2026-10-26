@@ -413,6 +413,12 @@ IPアドレスやUser-Agentの生値は保存しません。内部ログは運�
 - いいね履歴インポートは移行補助向けです。移行元の完全な履歴精度が必要な場合は、任意列をできるだけ指定してください。
 - `tests/LikeButtonRendererTest.php` はローカルDB fixtureに依存します。実行前にテストファイル冒頭の前提を確認してください。
 
+### 公開POSTのクライアントIPとプロキシ設定
+
+クライアントIPは既定で `REMOTE_ADDR` を使います。リバースプロキシ経由で `X-Forwarded-For` を利用する場合は、新設定 `DF_LIKE_TRUSTED_PROXIES` に管理下のプロキシIP/CIDRを明示してください。設定例、Webサーバー側との役割分担、変更による影響、DB不要のテスト手順は [クライアントIPの設定](docs/client-ip.md) を参照してください。
+
+10分制限はIPとUser-Agentの組合せごとに、直近10分の成功した `like` 履歴を数えます。IP取得の修正だけで、User-Agent変更、Cookieによる訪問者の作り直し、同時実行に伴う制限の課題がすべて解消するわけではありません。
+
 ## リリース告知連携
 
 `DF_RELEASE_SYNC_ENABLED=1` でリリースJSONをSFTP配置したあと、`DF_RELEASE_PUBLISH_ENABLED=1` の場合だけDFリリースへ告知作成POSTを送ります。
